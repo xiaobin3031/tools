@@ -20,7 +20,7 @@ ajax:function(data,callback,url){
     	alert("请求发生异常，请重试");
     }
     $.ajax(s);
-},
+},  
 getWeatherImg:function(weatherDes){
     if(weatherDes.indexOf('多云') != -1 || weatherDes.indexOf('晴') != -1){
         return 's_1.png';

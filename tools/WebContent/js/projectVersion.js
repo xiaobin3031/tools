@@ -26,7 +26,7 @@ $(function(){
 		}
 	});
 	
-});
+});  
 function collapsePanel(){
 	if(panelId != undefined){
 		$('#'+panelId).panel('collapse',true);
