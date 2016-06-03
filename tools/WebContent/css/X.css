@@ -1,0 +1,14 @@
+.pointer{
+	cursor: pointer;
+}
+.selected-panel{
+	
+}
+.headerCls{
+	height:30px;
+}
+.solution-navigate{
+	width:200px;
+	height:30px;
+	float:left;
+}

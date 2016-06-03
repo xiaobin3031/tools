@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>getPojo</title>
+<script type="text/javascript" src="js/jquery.min.js"></script>
+<script type="text/javascript" src="js/X.js"></script>
+<script src="js/pojo.js"></script>
+<link rel="stylesheet" type="text/css" href="css/X.css"/>
+<script type="text/javascript">
+function setval(a){
+	$('textarea[name="origin"]').val($(a).val());
+}
+</script>
+<style>
+body > div{float:left;margin-left:15px;}
+.left{margin-left:10px;}
+.left > div{margin-top:10px;}
+.database{width:500px;height:25px;}
+.database label{width:100%;height:100%;margin:auto auto 5px 20px;}
+.connection span{width:70px;}
+.connection > div{margin-top:10px;height:25px;}
+.detailTop{height:30px;line-height:30px;width:800px;}
+.detailTop > div{float:left;margin-right:20px;cursor: pointer;}
+.resultUI{width:665px;height:800px;border:1px solid red;}
+.comments > div{margin-top:10px;}
+</style>
+</head>
+<body>
+<input type="button" value="test" onclick="test();" hidden="hidden"/>
+<div class="left">
+<div class="database"><label><input type="radio" name="dbType" value="0"/>SqlServer</label>
+<label><input type="radio" name="dbType" value="1" checked="checked"/>Oracle</label>
+<label hidden="hidden"><input type="radio" name="dbType" value="2" />MySql</label>
+<input type="button" value="Translate" onclick="translate2Pojo();"/><label><input type="checkbox" name="getViewAndDao"/><span>生成view和dao</span></label>
+</div>
+<div class="connection">
+<!-- 接口测试用 -->
+<!-- <div> -->
+<!-- <label><input type="radio" name="aa" value="0" onclick="setval(this)" /><span>收货记录</span></label> -->
+<!-- <label><input type="radio" name="aa" value="1" onclick="setval(this)" /><span>收货单</span></label> -->
+<!-- <label><input type="radio" name="aa" value="2" onclick="setval(this)" /><span>物料</span></label> -->
+<!-- <label><input type="radio" name="aa" value="3" onclick="setval(this)" /><span>拣货记录</span></label> -->
+<!-- <label><input type="radio" name="aa" value="4" onclick="setval(this)" /><span>出库单</span></label> -->
+<!-- <label><input type="radio" name="aa" value="5" onclick="setval(this)" /><span>解码锁码</span></label> -->
+<!-- </div> -->
+<div><span>连接地址:</span><input type="text" value="" name="ipAddr"/><span>数据库名:</span><input type="text" value="" name="dbName"/></div>
+<div><span>用户名:<input type="text" value="" name="username"/></span><span>密码:</span><input type="password" value="" name="password"/></div>
+</div>
+<div><textarea style="width:500px;height:300px;" name="origin"></textarea></div>
+<div style="height:25px;">
+<span>需要忽略的列名:</span><input type="button" name="ignoreColumn" value="忽略" onclick="ignoreColumn();" />
+<span style="margin-left:20px;">表别名:</span><input type="text" name="alias" value="" />
+</div>
+<div class="ignoreChkGroup">
+<fieldset style="width:450px;text-align:center;margin-left:10px;height:40px;">
+<legend>作用范围</legend>
+<label><input type="checkbox" value="0" checked="checked"/><span>列名</span></label>
+<label><input type="checkbox" value="1" checked="checked"/><span>Pojo</span></label>
+<label><input type="checkbox" value="2" checked="checked"/><span>hbm.xml</span></label>
+<label><input type="checkbox" value="3" checked="checked"/><span>ds.xml</span></label>
+<label><input type="checkbox" value="4" checked="checked"/><span>ui.xml</span></label>
+</fieldset>
+</div>
+<div><textarea style="width:500px;height:100px;" name="columns"></textarea></div>
+<div style="height:20px;"><span>列名:</span></div>
+<div><textarea style="width:500px;height:200px;" name="resultColumns"></textarea></div>
+</div>
+<div class="comments">
+<div style="height:25px;"><span>列的中文释义:</span><input type="button" name="setComments" onclick="setComments();" value="列名注释"/></div>
+<div><textarea style="width:400px;height:843px;" name="comments"></textarea></div>
+</div>
+<div>
+<div class="detailTop">
+<div><span>Pojo:</span><input type="button" name="toBol" onclick="toBol();" value="转换"/></div>
+<div><span>hbm.xml:</span></div>
+<div><span>ds.xml:</span><input type="button" name="displayField" onclick="displayField();" value="显示"/></div>
+<div><span>ui.xml:</span></div>
+<div><span>view.java</span></div>
+<div><span>dao.java</span></div>
+</div><br />
+<div class="detailArea">
+<div class="pojoArea">
+<div>
+<span>输入需要转换成Boolean的字段名: </span><br />
+<fieldset>
+<legend>同时作用于以下模块</legend>
+<label><input type="checkbox" value="2" checked="checked"/><span>hbm.xml</span></label>
+<label><input type="checkbox" value="3" checked="checked"/><span>ds.xml</span></label>
+</fieldset>
+<label hidden="hidden"><input type="checkbox" value="4"/><span>ui.xml</span></label>
+</div>
+<div><textarea rows="5" cols="80" name="toBol"></textarea></div>
+<div><textarea rows="40" cols="80" name="result"></textarea></div>
+</div>
+<div><textarea rows="50" cols="80" name="resultXml"></textarea></div>
+<div>
+<div><span>输入需要显示的列:</span></div>
+<div><textarea rows="5" cols="80" name="displayField"></textarea></div>
+<div><textarea rows="40" cols="80" name="resultField"></textarea></div>
+</div>
+<div>
+<div style="float:left">
+<div><span>按以下列名或中文名顺序排序(','逗号隔开,如果分组,' '空格隔开,<br />';'分号后面是分组后每个tab的中文名,','逗号隔开):</span></div>
+<div style="float:left">
+<div>
+<span>主界面:</span><input type="button" name="uiSort" onclick="uiSort();" value="排序"/>
+</div>
+<textarea rows="5" cols="38" name="uiSort"></textarea>
+</div>
+<div style="float:left">
+<div>
+<span>查询界面:</span><input type="button" name="searchUI" onclick="searchUI();" value="生成"/>
+<input type="button" name="fromUI" onclick="fromUI();" value="从主界面中选择" />
+</div>
+<textarea rows="5" cols="38" name="searchCol"></textarea>
+</div>
+<div>
+<textarea rows="40" cols="80" name="resultUI"></textarea>
+<div class="resultUI" hidden="hidden"><label><input type="checkbox" /><span></span></label></div>
+</div>
+</div>
+<div style="float:left;margin-top:50px;">
+<div>
+<div><span>查询界面:</span></div>
+<textarea rows="20" cols="60" name="searchUI"></textarea>
+</div>
+<div>
+<div><span>查询条件:</span></div>
+<textarea rows="20" cols="60" name="searchCondiftion"></textarea>
+</div>
+</div>
+</div>
+<div style="float:left">
+<div><label><input type="checkbox" name="initSearch" /><span>需要初始化查询条件</span></label></div>
+<textarea rows="45" cols="80" name="resultView"></textarea></div>
+<div><textarea rows="50" cols="80" name="resultDao"></textarea></div>
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>DoctorMarry</title>
+<script type="text/javascript" src="js/jquery.min.js"></script>
+<script type="text/javascript" src="js/X.js"></script>
+<script type="text/javascript" src="js/jquery.easyui.min.js"></script>
+<script type="text/javascript" src="js/easyui-lang-zh_CN.js"></script>
+<link rel="stylesheet" type="text/css" href="css/easyui.css"/>
+<link rel="stylesheet" type="text/css" href="css/icon.css"/>
+<script type="text/javascript">
+var integral,timeout;
+var canLeft = false,canRight = false;
+var ml = 37,rl = 97,rr = 98,mr = 39,md = 40;
+$(document).ready(function(){
+	getVirus();
+	getDrug();
+});
+function key_listen(e){
+	e = e || window.event || arguments.callee.caller.arguments[0];
+	if(e){
+		switch(parseInt(e.keyCode)){
+		case ml:
+			moveLeft();
+			break;
+		case mr:
+			moveRight();
+			break;
+		case md:
+			moveDown();
+			break;
+		case rl:
+			rollLeft();
+			break;
+		case rr:
+			rollRight();
+			break;
+		}
+	}
+}
+function moveLeft(){
+	var l = parseInt($('.drug').css('margin-left').replace('px',''));
+	if(canLeft && l >= 20){
+		$('.drug').css('margin-left',l - 20);
+	}
+}
+function moveRight(){
+	var r = parseInt($('.drug').css('margin-left').replace('px',''));
+	if(canRight && parseInt($('#mainForm').css('width').replace('px','')) - r >= parseInt($('.drug').css('width').replace('px','')) + 20){
+		$('.drug').css('margin-left',r + 20);
+	}
+}
+function moveDown(){
+	var d = parseInt($('.drug').css('margin-top').replace('px',''));
+	if(isNotBound(d)){
+		$('.drug').css('margin-top',d + 20);
+	}else{
+		canLeft = false;
+		canRight = false;
+		$('.drug').removeClass('drug');
+		$('.drug1').removeClass('drug1');
+		$('.drug2').removeClass('drug2');
+		clearInterval(integral);
+		getDrug();
+	}
+}
+//左旋
+function rollLeft(){
+	
+}
+//右旋
+function rollRight(){
+	
+}
+//是否边界
+function isNotBound(d){
+	return parseInt($('#mainForm').css('height')) - d >= parseInt($('.drug').css('height').replace('px','')) + 20;
+}
+var vircus=['red','blue','yellow'];	//病毒种类
+var location_w;
+var location_h;	//避免一次生成的坐标冲突
+//获得病毒,5个(供测试)
+function getVirus(){
+	//清空vircus
+	$('#mainForm').empty();
+	location_w = {};
+	location_h = {};
+	for(var i=0;i<5;i++){
+		$('#mainForm').append('<div id="vircus'+i+'" style="position:absolute;width:20px;height:20px; background-color:'+vircus[Math.ceil(Math.random()*3) - 1]+';"></div>');
+		var w = parseInt(Math.random()*((500-20)/20))*20;
+		while(!X.isEmpty(location_w[w]))
+			w = parseInt(Math.random()*((500-20)/20))*20;
+		$('#vircus'+i).css('margin-left',w);
+		location_w[w] = 1;
+		var h = parseInt(Math.random()*((400-20)/20))*20+200;
+		while(!X.isEmpty(location_h[h]))
+			h = parseInt(Math.random()*((400-20)/20))*20+200;
+		$('#vircus'+i).css('margin-top',h);
+		location_h[h] = 1;
+	}
+}
+function getDrug(){
+	var d = new Text();
+	d._('<div class="drug" style="position:absolute;width:40px;height:20px;margin-left:240px;">')
+	._('<div class="drug1" style="float:left;width:20px;height:20px;background-color:'+vircus[Math.ceil(Math.random()*3) - 1]+';"></div>')
+	._('<div class="drug2" style="float:left;width:20px;height:20px;background-color:'+vircus[Math.ceil(Math.random()*3) - 1]+'"></div>')
+	._('</div>');
+	$('#mainForm #unusedDrug').append(d.toString());
+	timeout = setTimeout(function(){
+		integral = setInterval(function(){
+			moveDown();
+			canLeft = true;
+			canRight = true;
+		}, 1000);
+		window.clearTimeout(timeout);
+	}, 1000);
+}
+</script>
+<style>
+</style>
+</head>
+<body onkeydown = "key_listen();">
+<div id="mainForm" style="width:500px;height:600px;border:1px solid red;">
+<div id="usedDrug" style="width:100%;height:100%;float:left"></div>
+<div id="unusedDrug" style="float:left"></div>
+</div>
+</body>
+</html>

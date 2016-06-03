@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>根据条件获得权限代码</title>
+<script type="text/javascript" src="js/jquery.min.js"></script>
+<script type="text/javascript" src="js/X_easyui.js"></script>
+<script type="text/javascript" src="js/jquery.easyui.min.js"></script>
+<script type="text/javascript" src="js/easyui-lang-zh_CN.js"></script>
+<link rel="stylesheet" type="text/css" href="css/easyui.css"/>
+<link rel="stylesheet" type="text/css" href="css/icon.css"/>
+<script type="text/javascript">
+var l = 52;
+function newId(){
+	var t = new Text();
+	var i = $('table tbody tr').size()+1;
+	t._('<tr><td><img src="icon/cancel.png" onclick="delRow(this);"/></td>')
+	._('<td><input name="form'+i+'"/></td>')
+	._('<td><input name="subForm1'+i+'"/></td>')
+	._('<td><input name="subForm2'+i+'" disabled="true"/></td>')
+	._('<td style="text-align:left;"><img src="icon/cancel.png" onclick="deselectBtn(this);"/></br>')
+	._('<label><input type="checkbox" name="search'+i+'"/><span>查询&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></label>')
+	._('<label><input type="checkbox" name="add'+i+'" checked="true"/><span>新增&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></label>')
+	._('<label><input type="checkbox" name="addCopy'+i+'"/><span>复制新增&nbsp;&nbsp;</span></label>')
+	._('<label><input type="checkbox" name="save'+i+'" checked="true"/><span>保存&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></label>')
+	._('<label><input type="checkbox" name="del'+i+'" checked="true"/><span>删除&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></label>')
+	._('<label><input type="checkbox" name="cancel'+i+'" checked="true"/><span>取消&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></label>')
+	._('<label><input type="checkbox" name="fresh'+i+'"/><span>刷新&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></label></br>')
+	._('<label><input type="checkbox" name="audit'+i+'"/><span>审核&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></label>')
+	._('<label><input type="checkbox" name="cancelAudit'+i+'"/><span>取消审核&nbsp;&nbsp;</span></label>')
+	._('<label><input type="checkbox" name="sett'+i+'"/><span>结算&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></label>')
+	._('<label><input type="checkbox" name="cancelSett'+i+'"/><span>取消结算&nbsp;&nbsp;</span></label>')
+	._('<label><input type="checkbox" name="confirm'+i+'"/><span>确认收货&nbsp;&nbsp;</span></label>')
+	._('<label><input type="checkbox" name="cancelConfirm'+i+'"/><span>取消收货&nbsp;&nbsp;</span></label></br>')
+	._('<label><input type="checkbox" name="allocation'+i+'"/><span>分配&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></label>')
+	._('<label><input type="checkbox" name="cancelAllocation'+i+'"/><span>取消分配&nbsp;&nbsp;</span></label>')
+	._('<label><input type="checkbox" name="deleve'+i+'"/><span>发货&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></label>')
+	._('<label><input type="checkbox" name="cancelDel'+i+'"/><span>取消发货&nbsp;&nbsp;</span></label>')
+	._('<label><input type="checkbox" name="review'+i+'"/><span>复核确认&nbsp;&nbsp;</span></label>')
+	._('<label><input type="checkbox" name="cancelReview'+i+'"/><span>取消复核&nbsp;&nbsp;</span></label></br>')
+	._('<label><input type="checkbox" name="froze'+i+'"/><span>冻结&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></label>')
+	._('<label><input type="checkbox" name="release'+i+'"/><span>释放&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></label>')
+	._('<label><input type="checkbox" name="move'+i+'"/><span>移动&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></label>')
+	._('<label><input type="checkbox" name="adjust'+i+'"/><span>调整&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></label>')
+	._('<label><input type="checkbox" name="transfer'+i+'"/><span>转移&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></label>')
+	._('<label><input type="checkbox" name="put'+i+'"/><span>上架&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></label>')
+	._('<label><input type="checkbox" name="imp'+i+'"/><span>导入&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></label>')
+	._('<label><input type="checkbox" name="exp'+i+'"/><span>导出&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></label></br>')
+	._('<label><input type="checkbox" name="label'+i+'"/><span>打印标签&nbsp;&nbsp;</span></label>')
+	._('<label><input type="checkbox" name="print01'+i+'"/><span>打印01&nbsp;&nbsp;</span></label>')
+	._('<label><input type="checkbox" name="print02'+i+'"/><span>打印02&nbsp;&nbsp;</span></label>')
+	._('</td>')
+	._('</tr>');
+	$('table tbody').append(t.toString());
+	if($('table tbody tr').size() == 1){
+		$('input[name="search1"]').attr('checked','true');
+	}
+	if($('table tbody tr').size() > 1){
+		if(!X.isEmpty($('input[name="subForm1'+(i-1)+'"]').val())
+				&& parseInt($('input[name="subForm1'+(i-1)+'"]').val()) < 2){
+			$('input[name="form'+i+'"]').val(parseInt($('input[name="form'+(i-1)+'"]').val()));
+			$('input[name="subForm1'+i+'"]').val(parseInt($('input[name="subForm1'+(i-1)+'"]').val())+1);
+		}else
+			$('input[name="form'+i+'"]').val(parseInt($('input[name="form'+(i-1)+'"]').val())+1);
+	}else{
+		$('input[name="form'+i+'"]').val(1);
+	}
+}
+
+function getSpaces(r){
+	var tt = '';
+// 	var ii = parseInt((l-r.length)/4);
+// 	if((l-r.length)%4 != 0) ii++;
+	ii = l - r.length;
+	for(var i=0;i<ii;i++){
+		tt += ' ';
+	}
+	return tt;
+}
+
+function delRow(a){
+	$(a).parent().parent().remove();
+}
+function getPrivCode(){
+	if($('table tbody tr').size() == 0 || X.isEmpty($('input[name="function_id"]').val())) return;
+	var function_id = $('input[name="function_id"]').val();
+	var beginWord = $('input[name="beginWord"]').val();
+	var form = '';
+	var _sub1 = '';
+	var _sub2 = '';
+	var t = new Text();
+	t.setn();
+	t.setb('\tpublic final static String '+beginWord);
+	var r = '';
+	r = ' = "'+function_id+'";';
+	t._(' = "'+function_id+'";'+getSpaces(r)+'//');
+	var preVal = '';
+	
+	$('table tbody tr').each(function(){
+		form = '_P0'+$(this).find('td:eq(1)').find('input').val();
+		if(preVal != form){
+			r = form+' = "'+function_id+form+'";';
+			t._(form+' = "'+function_id+form+'";'+getSpaces(r)+'//');
+		}
+		preVal = form;
+		if(!X.isEmpty($(this).find('td:eq(2)').find('input').val())){
+			form = form + '_P0'+$(this).find('td:eq(2)').find('input').val();
+			r = form+' = "'+function_id+form+'";';
+			t._(form+' = "'+function_id+form+'";'+getSpaces(r)+'//');
+		}
+		var index = 0;
+		$(this).find('td:eq(4)').find('input[type="checkbox"]').each(function(){
+			index++;
+			if($(this).is(':checked')){
+				r = form+'_'+$(this).attr('name').substring(0,$(this).attr('name').length - 1)+' = "'+
+				function_id+form+'_O'+(index<10?'0'+index:index)+'";';
+				t._(r+getSpaces(r)+'//'+
+					X.trim($(this).next('span').text())+'/'+$(this).attr('name').substring(0,$(this).attr('name').length - 1));
+			}
+		});
+	});
+	$('textarea[name="codes"]').val(t.toString());	
+}
+
+function deselectBtn(a){
+	$(a).parent().find('input[type="checkbox"]').each(function(){
+		if($(this).is(':checked')){
+			$(this).attr('checked',false);
+		}
+	});
+}
+</script>
+<style>
+table th,td{border:1px solid black;text-align:center;}
+/* table tbody td label{margin-left:20px;} */
+</style>
+</head>
+<body>
+<div>页签的FUNCTION_ID： <input name="function_id"/>变量起始字母,比如：<input name="beginWord"/>_P01_O01</div>
+<div>
+<table style="width:1500px;">
+<thead>
+<tr>
+	<th style="width:40px;"><img src="icon/edit_add.png" onclick="newId();"/></th>
+	<th>主页签</th>
+	<th>子页签</th>
+	<th>子页签2</th>
+	<th style="width:800px;">按钮</th>
+</tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+</div>
+<div><input type="button" value="getPrivCode" onclick="getPrivCode();"/></div>
+<div><textarea cols="80" rows="80" name="codes"></textarea></div>
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>将权限代码一次性生成SQL脚本</title>
+<script type="text/javascript" src="js/jquery.min.js"></script>
+<script type="text/javascript" src="js/X.js"></script>
+<script type="text/javascript" src="js/jquery.easyui.min.js"></script>
+<script type="text/javascript" src="js/easyui-lang-zh_CN.js"></script>
+<link rel="stylesheet" type="text/css" href="css/easyui.css"/>
+<link rel="stylesheet" type="text/css" href="css/icon.css"/>
+<script type="text/javascript">
+function privToSql(){
+	var t1 = $('textarea[name="t1"]').val();
+	if(X.isEmpty(t1)) return;
+	var t2 = t1.replace(/^[\s\n]+$/g,'').replace(/^\s+|\s+$/g,'').replace(/.*?(?=\= ?")/g,'').replace(/(= ?"|";)/g,'').replace(/[ \t]+/g,' ').split('\n');
+	var id = parseInt($('input[name="ID"]').val());
+	var parent_function_id = '';
+	var function_id = '';
+	var function_name = '';
+	var function_name_e = '';
+	var sql = new Text();
+	for(var t in t2){
+		if(X.isEmpty(t2[t])) continue;
+		if(t2[t].split(' ')[0].length == 7){
+			parent_function_id = t2[t].split(' ')[0];
+			sql._("delete from SYS_FUNC_PAGE where FUNCTION_ID like '"+parent_function_id+"%';")._('\n');
+		}
+		else{
+			function_id = t2[t].split(' ')[0];
+			function_name = t2[t].split('//')[1].split('/')[0];
+			function_name_e = t2[t].split('/')[3];
+			sql._('insert into SYS_FUNC_PAGE(ID,FUNCTION_ID,PARENT_FUNCTION_ID,FUNCTION_NAME,SEQUENCE,ACTIVE_FLAG,')
+			._('ADDTIME,ADDWHO,FUNCTION_NAME_E)')._('\n')
+			._('values('+(id+parseInt(t)+1)+',')
+			._("'"+function_id+"','"+function_id.substring(0, function_id.lastIndexOf("_"))+"','"+function_name+"',90,'Y',sysdate,'admin','"+function_name_e+"');")
+			._('\n');
+		}
+	}
+	sql._('commit;\n');
+	$('textarea[name="t2"]').val(sql);
+}
+</script>
+</head>
+<body>
+<div>ID 初始值:<input value="" name="ID" onblur="privToSql();"/></div>
+<TextArea cols="60" rows="40" name="t1" onblur="privToSql();"></TextArea>
+<TextArea cols="60" rows="40" name="t2"></TextArea>
+</body>
+</html>

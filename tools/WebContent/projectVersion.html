@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>项目日志</title>
+<script type="text/javascript" src="js/jquery.min.js"></script>
+<script type="text/javascript" src="js/jquery.easyui.min.js"></script>
+<script type="text/javascript" src="js/X.js"></script>
+<script type="text/javascript" src="js/projectVersion.js"></script>
+<link rel="stylesheet" type="text/css" href="css/easyui.css" />
+<link rel="stylesheet" type="text/css" href="css/icon.css" />
+<link rel="stylesheet" type="text/css" href="css/X.css" />
+<script type="text/javascript">
+</script>
+<style>
+.easyui-accordion a {
+	display: block;
+}
+</style>
+</head>
+<body class="easyui-layout">
+	<div data-options="region:'north',border:false"
+		style="height: 60px; background: #B3DFDA; padding: 10px">north
+		region</div>
+	<div
+		data-options="region:'west',split:true,title:'ProjectName',tools:'#mainWestBtn'"
+		style="width: 10%; padding: 10px;">
+		<ul id="projectNames" class="easyui-tree" 
+			data-options="lines:true,url:'/action.php?action=project&subAction=getProject'
+				,onSelect:getQuestions,onlyLeafCheck:true">
+		</ul>
+	</div>
+	<div data-options="region:'south',border:false" style="height: 50px; background: #A9FACD; padding: 10px;">south
+		region</div>
+	<div data-options="region:'east',border:false,collapsed:true,title:'East'" style="width:100px;padding:10px;"></div>
+	<div data-options="region:'center',border:false">
+		<div id="aa" class="easyui-layout" data-options="fit:true">
+			<div data-options="region:'west',split:true" style="width: 50%">
+				<div class="easyui-tabs" style="height:100%;" data-options="border:false">
+					<div title="未解决">
+						<table id="questions" class="easyui-datagrid" style="width:100%" data-options="
+								rownumbers:true,
+								singleSelect:true,
+								autoRowHeight:true,
+								pagination:true,
+								pageSize:50,
+								fit:true,
+								onSelect:onSelectRow,
+								onDblClickRow:questionDblRow,
+								showFooter:true">
+						<thead>
+							<tr>
+								<th data-options="field:'id',width:'10%'">编号</th>
+								<th data-options="field:'title',width:'85%',editor:'text'">Question</th>
+							</tr>
+						</thead>
+						</table>
+					</div>
+				</div>
+			</div>
+			<div data-options="region:'center',border:true">
+				<div class="easyui-layout" data-options="fit:true">
+					<div data-options="region:'north'" style="height:40px;">
+						
+						<div style="width:100%;height:30px;margin-top:6px;overflow: hidden;position:fixed;z-index:100;">
+							<span style="width:5%;margin-left:5px;"></span>
+							<input class="easyui-searchbox" data-options="prompt:'Just Input Something',searcher:doSearch">
+							<span >发布人:</span>
+							<select id="releaser" class="easyui-combobox" style="width:10%;"
+								data-options="textField:'text',valueField:'release'">
+						  	</select>
+						  	<a href="javascript:void(0)" class="easyui-linkbutton" 
+						  		onclick="expandAll();" data-options="text:'全部展开'"></a>
+						  	<a href="javascript:void(0)" class="easyui-linkbutton" 
+						  		onclick="collapseAll();" data-options="text:'全部折叠'"></a>
+							<a href="javascript:void(0)" class="easyui-linkbutton" 
+								onclick="addSolution();" data-options="iconCls:'icon-add',plain:true" style="padding-left:5%;"></a>
+							<a href="javascript:void(0)" class="easyui-linkbutton" 
+								onclick="saveSolution();" data-options="iconCls:'icon-save',plain:true"></a>
+							<a href="javascript:void(0)" class="easyui-linkbutton" 
+								onclick="removeSolution();" data-options="iconCls:'icon-remove',plain:true"></a>
+							<a href="javascript:void(0)" class="easyui-linkbutton" 
+								onclick="cancelSolution();" data-options="iconCls:'icon-cancel',plain:true"></a>
+						</div>
+					</div>
+					<div id="solution" data-options="region:'center',border:false" style="overflow-x:hidden;">
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div id="mainWestBtn">
+		<a href="javascript:void(0)" class="icon-add" onclick="addProject();"></a>
+	</div>
+	<div id="sub1WestBtn">
+		<a href="javascript:void(0)" class="icon-add" onclick="tabAdd();"></a>
+	</div>
+	<div id="buttons">
+		<table style="border-spacing:0">
+			<tr>
+				<td>
+					<input class="easyui-searchbox" data-options="prompt:'Just Input Something',searcher:doSearch" style="width:150px">
+				</td>
+				<td>
+					<a href="javascript:void(0)" onclick="addData();" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true"></a>
+					<a href="javascript:void(0)" onclick="saveData();" class="easyui-linkbutton" data-options="iconCls:'icon-save',plain:true"></a>
+					<a href="javascript:void(0)" onclick="removeData();" class="easyui-linkbutton" data-options="iconCls:'icon-remove',plain:true"></a>
+					<a href="javascript:void(0)" onclick="cancelData();" class="easyui-linkbutton" data-options="iconCls:'icon-cancel',plain:true"></a>
+				</td>
+			</tr>
+		</table>
+	</div>
+	<div id="simpleButtons">
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true"></a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-save',plain:true"></a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-remove',plain:true"></a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-cancel',plain:true"></a>
+	</div>
+	<div id="w" class="easyui-window" title="AddProject" data-options="iconCls:'icon-save',closed:true,modal:true
+		,maximizable:false,minimizable:false,collapsible:false" 
+		style="width:500px;height:220px;padding:10px;">
+		<div style="margin:10px;">
+			<select id="projectLevel" class="easyui-combobox" style="width:20%;" data-options="onSelect:projectLevelSelect">
+				<option value="p">父级</option>
+				<option value="s">子级</option>
+			</select>
+			<select id="projectNameSelect" class="easyui-combobox" style="width:20%;" 
+				data-options="textField:'text',valueField:'id'
+					,onSelect:setProjectInWindow">
+			</select>
+			<label style="margin-left:20px;"><input type="checkbox" name="isCloseAfterSave" checked="checked"/><span>保存成功后关闭此窗口</span></label>
+		</div>
+		<div style="margin:10px;display:none;">
+			<input id="projectId" class="easyui-textbox" style="width:100%;height:20px;" data-options="disable:true,prompt:'project code,must be unique!'">
+		</div>
+		<div style="margin:10px;display:none;">
+			<input id="projectCode" class="easyui-textbox" style="width:100%;height:20px;" data-options="prompt:'project code,must be unique!'">
+		</div>
+		<div style="margin:10px;">
+			<input id="projectName" class="easyui-textbox" style="width:100%;height:20px;" data-options="prompt:'project name,must be unique!'">
+		</div>
+		<div style="margin:10px;">
+			<input id="subCodeName" class="easyui-textbox" style="width:100%;height:20px;" data-options="prompt:'预设的子级名称,格式:CODE;NAME...'">
+		</div>
+		<div style="margin:10px;top:170px;position:absolute;">
+			<a href="javascript:void(0);" onclick="saveProject();" class="easyui-linkbutton" data-options="iconCls:'icon-save'">Save</a>
+			<a href="javascript:void(0);" onclick="cancelProject();" class="easyui-linkbutton" data-options="iconCls:'icon-cancel'">Cancel</a>
+		</div>
+	</div>
+</body>
+</html>
