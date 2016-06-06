@@ -29,15 +29,15 @@ public class Solution {
 		return json;
 	}
 	
-	public String saveSolution(String id,String questionId,String[] solution,String[] keyword,String[] status,String username){
+	public String saveSolution(String id,String questionId,String[] solution,String[] keyword,String[] status,String username,String editwho){
 		String json = JUtil.getCommJson(false);
 		SUtil sUtil = new SUtil();
 		if(Util.isNotNull(id)){
 			//update
 			for(int i=0;i<solution.length;i++){
-				sUtil.addList(solution[i],keyword[i],Util.isNotNull(status[i]) ? status[i] : "00",id,username);
+				sUtil.addList(solution[i],keyword[i],Util.isNotNull(status[i]) ? status[i] : "00",Util.date2String(),editwho,id,username);
 			}
-			json = sUtil.updateList("update SOLUTIONS set SOLUTION = ?,KEYWORD = ?,STATUS = ? where ID = ? and ADDWHO = ?");
+			json = sUtil.updateList("update SOLUTIONS set SOLUTION = ?,KEYWORD = ?,STATUS = ?,EDITTIME = ?,EDITWHO = ? where ID = ? and ADDWHO = ?");
 		}else{
 			//insert
 			for(int i=0;i<solution.length;i++){

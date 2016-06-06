@@ -1,5 +1,5 @@
 var X={
-cons:{url:'action.php'},
+cons:{url:'action.php',pageSize:50,alertCode:-200},
 init:function(){
     X.ajax({action:"userOrAdmin"},function(data){
            var json = X.toJson(data);
@@ -58,6 +58,12 @@ isEmpty:function(v){
     switch (typeof v){
 		case 'undefined':
 			return true;
+		case 'object':
+			if(v === null || v.length === 0 || (v.length === 1 && X.trim(v[0]).length == 0)) return true;
+			for(var i in v){
+				return false;
+			}
+			break;
 		case 'string':
 			if(X.trim(v).length == 0) return true;
             break;
@@ -67,12 +73,6 @@ isEmpty:function(v){
 		case 'number':
 			if(0 === v || isNaN(v)) return true;
             break;
-		case 'object':
-			if(v === null || v.length === 0 || (v.length === 1 && X.trim(v[0]).length == 0)) return true;
-			for(var i in v){
-				return false;
-			}
-			return true;
     }
 	return false;
 },
@@ -158,8 +158,9 @@ loadXMLString:function(dname){
 	  }
     return xmlDoc;
 },
-dialog:function(v){
-	//alert(v);
+dialog:function(v,c){
+	if(c == X.cons.alertCode)
+		alert(v);
 },
 //比较json对象的键值对个数和给定数值的大小，如果com空，则返回data的键值对个数
 getObjLenOrCompare:function(data,com){
@@ -205,6 +206,9 @@ removeRepStr:function(v){
 			break;
 	}
 	return v;
+},
+toEntities:function(v){
+	return v.replace(/'/g,'&#39;').replace(/</g,'&#60;').replace(/>/g,'&#62;');
 }
 }
 X.html={
@@ -359,12 +363,17 @@ function Text(){
 function Map(){
 	this.map = {};
 	this.m = function(key,value){
-		if(typeof value == 'undefined'){
-			return map[key];
+		if(value == undefined){
+			return this.map[key];
 		}else{
-			map[key] = value;
+			this.map[key] = value;
 			return this;
 		}
+	}
+	//判断是否为空
+	this.isEmpty = function(){
+		for(var x in this.map) return false;
+		return true;
 	}
 }
 

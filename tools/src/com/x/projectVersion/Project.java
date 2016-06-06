@@ -92,7 +92,7 @@ public class Project {
 			if(aChildrens != null && aChildrens.length > 0){
 				StringBuffer sb = new StringBuffer();
 				sb.append("insert into PROJECT_CHILDREN(PARENT_ID,NAME,ACTIVE_FLAG,ADDWHO,ADDTIME)")
-				.append(" select ?,?,?,?,? from PROJECT_CHILDREN where not exists(select 1 from PROJECT_CHILDREN where NAME = ?)")
+				.append(" select ?,?,?,?,? from PROJECT_CHILDREN where not exists(select 1 from PROJECT_CHILDREN where NAME = ? and PARENT_ID = ?)")
 				.append(" limit 0,1");
 				ps = con.prepareStatement(sb.toString());
 				for(int i=0;i<aChildrens.length;i++){
@@ -102,6 +102,7 @@ public class Project {
 					ps.setString(4, sUser);
 					ps.setString(5, Util.date2String());
 					ps.setString(6, aChildrens[i]);
+					ps.setString(7, sProjectId);
 					ps.addBatch();
 					if((i>0 && i % 100 == 0) || i == aChildrens.length - 1){
 						ps.executeBatch();

@@ -65,7 +65,9 @@ public class Main extends HttpServlet{
 					String[] id = req.getParameterValues("id[]");
 					String[] status = req.getParameterValues("status[]");
 					String[] question = req.getParameterValues("question[]");
-					json = q.saveQuestion(username.toString(), id, status, question,parentId,childrenId);
+					String editwho = req.getParameter("editwho");
+					editwho = Util.isNotNull(editwho) ? editwho : username.toString();
+					json = q.saveQuestion(username.toString(), id, status, question,parentId,childrenId,editwho);
 				}else if("removeQuestion".equals(subAction)){
 					String id = req.getParameter("id");
 					json = q.removeQuestion(username.toString(), id);
@@ -81,7 +83,9 @@ public class Main extends HttpServlet{
 					String[] solution = req.getParameterValues("solution[]");
 					String[] keyword = req.getParameterValues("keyword[]");
 					String[] status = req.getParameterValues("status[]");
-					json = a.saveSolution(id,questionId,solution,keyword,status,username.toString());
+					String editwho = req.getParameter("editwho");
+					editwho = Util.isNotNull(editwho) ? editwho : username.toString();
+					json = a.saveSolution(id,questionId,solution,keyword,status,username.toString(),editwho);
 				}else if("removeSolution".equals(subAction)){
 					String id = req.getParameter("id");
 					json = a.removeSolution(id,username.toString());

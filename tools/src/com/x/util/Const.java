@@ -1,10 +1,5 @@
 package com.x.util;
 
-public enum Const {
-
-	FETCH_ALL,
-	
-	RESULT_MAP;
-	
-	public final static int SQL_INT = 2147483647;
+public class Const{
+	public final static int alertCode = -200;		//返回到前台的信息必须alert出来
 }

@@ -26,8 +26,7 @@
 		data-options="region:'west',split:true,title:'ProjectName',tools:'#mainWestBtn'"
 		style="width: 10%; padding: 10px;">
 		<ul id="projectNames" class="easyui-tree" 
-			data-options="lines:true,url:'/action.php?action=project&subAction=getProject'
-				,onSelect:getQuestions,onlyLeafCheck:true">
+			data-options="lines:true,onSelect:getQuestions,onlyLeafCheck:true">
 		</ul>
 	</div>
 	<div data-options="region:'south',border:false" style="height: 50px; background: #A9FACD; padding: 10px;">south
@@ -50,8 +49,12 @@
 								showFooter:true">
 						<thead>
 							<tr>
-								<th data-options="field:'id',width:'10%'">编号</th>
-								<th data-options="field:'title',width:'85%',editor:'text'">Question</th>
+								<th data-options="field:'id',width:'5%'">编号</th>
+								<th data-options="field:'title',width:'85%',editor:'validatebox'">Question</th>
+								<th data-options="field:'status',width:'10%',sortable:true,
+									editor:{type:'combobox',options:{
+										valueField:'code',textField:'name',method:'get',url:'json/questionsts.json'
+									}}">状态</th>
 							</tr>
 						</thead>
 						</table>

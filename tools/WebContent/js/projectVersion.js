@@ -1,6 +1,9 @@
+/**
+ * init begin;
+ */
 var edit_index = undefined,rowIndex = undefined,rowSelectedData = undefined,
 solutionId = 0,panelId = undefined,isAdd=false,isEdit=false,
-editIndexs = {};
+question_cache = new Map(),solution_cache = new Map();
 $(function(){
 	var pager = $('#questions').datagrid().datagrid('getPager');	// get the pager of datagrid
 	pager.pagination({
@@ -26,12 +29,15 @@ $(function(){
 		}
 	});
 	
-});  
+	getProject();
+});
 function collapsePanel(){
 	if(panelId != undefined){
 		$('#'+panelId).panel('collapse',true);
 	}
 }
+// initEnd;
+
 function tabAdd(){
 	var data = {};
 	data.action = "1111";
@@ -41,6 +47,21 @@ function doSearch(v){
 	alert('your input: '+v);
 }
 
+/**
+ * project模块
+ */
+function getProject(){
+	//查询数据库
+	var oData = {};
+	oData.action = 'project';
+	oData.subAction = 'getProject';
+	X.ajax(oData,function(data){
+		if(data) {
+			var json = X.toJson(data);
+			$('#projectNames').tree('loadData',json);
+		}
+	});
+}
 function addProject(){
 	$('#w').window('open');
 	var roots = $('#projectNames').tree('getRoots');
@@ -72,7 +93,6 @@ function addProject(){
 			$('#projectLevel').combobox('select','p');
 	}
 }
-
 function saveProject(){
 	var oData = {};
 	oData.action = 'project';
@@ -123,7 +143,12 @@ function projectLevelSelect(v){
 		$('#projectName').textbox('disable');
 	}
 }
-function getQuestions(){
+//projectEnd
+
+/**
+ * questions模块
+ */
+function getQuestions(isRequired){
 	$('#solution').empty();
 	var q = $('#questions');
 	if(q.datagrid('getPager').pagination('options').loading) return;
@@ -132,6 +157,20 @@ function getQuestions(){
 	if(selected == null) return;
 	var pageNumber = q.datagrid('getPager').pagination('options').pageNumber;
 	pageNumber = pageNumber == 0 ? 1 : pageNumber;
+	if(pageNumber == 1 && isRequired){
+		if(!X.isEmpty(selected.childrenId)){
+			//说明是选中的子节点
+			if(question_cache.m('c'+selected.childrenId) != undefined){
+				setQuestions(question_cache.m('c'+selected.childrenId));
+				return;
+			}
+		}else if(!X.isEmpty(selected.parentId))
+			//说明是选中的父节点
+			if(question_cache.m('p'+selected.parentId) != undefined){
+				setQuestions(question_cache.m('p'+selected.parentId));
+				return;
+			}
+	}
 	var pageSize = q.datagrid('getPager').pagination('options').pageSize;
 	if(X.isEmpty(pageSize)) pageSize = X.cons.pageSize;
 	var oData = {};
@@ -143,10 +182,21 @@ function getQuestions(){
 	oData.pageSize = pageSize;
 	X.ajax(oData, function(data){
 		var json = X.toJson(data);
-		$('#questions').datagrid('loadData',json.rows);
-		$('#questions').datagrid('getPager').pagination('loaded');
-		$('#questions').datagrid('acceptChanges');
+		setQuestions(json.rows);
+		if(!X.isEmpty(selected.childrenId)){
+			//说明是选中的子节点
+			question_cache.m('c'+selected.childrenId,json.rows);
+		}else if(!X.isEmpty(selected.parentId))
+			//说明是选中的父节点
+			question_cache.m('p'+selected.parentId,json.rows);
 	});
+}
+function setQuestions(rows){
+	$('#questions').datagrid('loadData',rows);
+	$('#questions').datagrid('getPager').pagination('loaded');
+	$('#questions').datagrid('acceptChanges');
+	isAdd = false;
+	isEdit = false;
 }
 function addData(){
 	var q = $('#questions');
@@ -155,36 +205,34 @@ function addData(){
 		q.datagrid('appendRow',{});
 		var index = q.datagrid('getRows').length - 1;
 		edit_index = index;
-		if(editIndexs[index] == undefined) editIndex[index] = 1;
 		q.datagrid('selectRow',index).datagrid('beginEdit',index);
 	}else
 		q.datagrid('selectRow',edit_index);
+	$('#questions').prev('div').find('.datagrid-body').find('table tbody tr:eq('+edit_index+')').find('input').focus();
 }
 function endEditing(){
-	if(edit_index != undefined || $('#questions').datagrid('getPager').pagination('options').loading) return false;
-	else return true;
+	if(edit_index == undefined) return true;
+	if($('#questions').datagrid('validateRow',edit_index)){
+		$('#questions').datagrid('endEdit',edit_index);
+		return true;
+	}
+	return $('#questions').datagrid('getPager').pagination('options').loading;
 }
 function cancelData(isNeedConfirm){
 	if(!endEditing())
 		if(isNeedConfirm && confirm("sure to cancel adding?")){
-//			$('#questions').datagrid('deleteRow',edit_index);
 			$('#questions').datagrid('rejectChanges');
 			edit_index = undefined;
+			isAdd = false;
+			isEdit = false;
 		}
 }
 function saveData(){
-	if(endEditing()) return;
+	if(!endEditing()) return;
 	var oData = {};
 	var q = $('#questions');
 	var selected = getTreeParentChildren();
-	for(var x in editIndexs){
-		//alert(x);
-		q.datagrid('endEdit',parseInt(editIndexs[x]));
-		alert(x);
-	}
-	//q.datagrid('endEdit',3);
 	var changedRows = q.datagrid('getChanges');
-	alert('changedRows.length := '+changedRows.length);
 	if(changedRows.length > 0 && selected != null){
 		var id = new Array(),status = new Array(),question = new Array();
 		oData.action = 'questions';
@@ -209,7 +257,6 @@ function saveData(){
 				edit_index = undefined;
 				isAdd = false;
 				isEdit = false;
-				editIndexs = {};
 			}else
 				X.dialog(json.resultMsg);
 		});
@@ -225,14 +272,13 @@ function removeData(){
 				var oData = {};
 				oData.action = 'questions';
 				oData.subAction = 'removeQuestion';
-//				alert(rowSelectedData.id);
 				oData.id = q.datagrid('getSelected').id;
 				X.ajax(oData, function(data){
 					var json = X.toJson(data);
 					if(json.success)
 						q.datagrid('deleteRow',rowIndex);
 					else
-						X.dialog(json.resultMsg);
+						X.dialog(json.resultMsg,json.code);
 					$('#questions').datagrid('getPager').pagination('loaded');
 				});
 			}else{
@@ -244,6 +290,7 @@ function removeData(){
 }
 function onSelectRow(index,data){
 	rowIndex = index;rowSelectedData = data;
+	if(isEdit) $('#questions').datagrid('endEdit',edit_index);
 	if(data.id == undefined) return;
 	getSolution(data.id);
 }
@@ -251,9 +298,16 @@ function questionDblRow(rowIndex,rowData){
 	if(isAdd) return;
 	isEdit = true;
 	$('#questions').datagrid('beginEdit',rowIndex);
-	if(editIndexs[rowIndex] == undefined) editIndexs[rowIndex] = 1;
+	if(edit_index != undefined) $('#questions').datagrid('endEdit',edit_index);
 	edit_index = rowIndex;
+	var a = $('#questions').prev('div').find('.datagrid-body').find('table tbody tr:eq('+edit_index+')').find('input');
+	a.focus();
+	a.value = '';
+	a.value = rowData.title;
 }
+//questions模块结束
+
+
 function getTreeParentChildren(){
 	if(!$('#projectNames').tree('getSelected')) return null;
 	var selected = $('#projectNames').tree('getSelected');
@@ -278,32 +332,43 @@ function getTreeParentChildren(){
 	return oData;
 }
 
-//解决方法的函数块   
-function getSolution(id){
-	var oData = {};
-	oData.action = 'solution';
-	oData.subAction = 'getSolutions';
-	oData.questionId = id;
-	X.ajax(oData,function(data){
-		$('#solution').empty();
-		var json = X.toJson(data);
-		if(json.success){
-			json = json.data;
-			for(var i=0;i<json.length;i++){
-				$('#solution').append('<div id="'+json[i].id+'" class="easyui-panel" style="width:100%;padding:30px 70px 20px 70px"></div>');
-				var options = {width:'100%',headerCls:'pointer',collapsed:true};
-				options.title = json[i].KEYWORD + '               --by' + json[i].RELEASER;
-				if(i == 0) options.collapsed = false;
-				options.content = json[i].SOLUTION;
-				options.id = json[i].ID;
-				$('#'+json[i].id).panel(options);
-			}
-			solutionId = 0;
-		}else
-			X.dialog(json.resultMsg);
-	});
+/**
+ * solution模块
+ * @param id
+ */   
+function getSolution(id,isRequired){
+	$('#solution').empty();
+	if(solution_cache.m(id) != undefined && isRequired){
+		setSolutions(solution_cache.m(id));
+	}else{
+		var oData = {};
+		oData.action = 'solution';
+		oData.subAction = 'getSolutions';
+		oData.questionId = id;
+		X.ajax(oData,function(data){
+			var json = X.toJson(data.replace(/[\r\n]+/g,' '));
+			if(json.success){
+				setSolutions(json.data);
+				solution_cache.m(id,json.data);
+			}else
+				X.dialog(json.resultMsg);
+		});
+	}
+	
 }
-//solutionBegin;
+function setSolutions(json){
+	for(var i=0;i<json.length;i++){
+		$('#solution').append('<div id="'+json[i].id+'" class="easyui-panel" style="width:100%;padding:30px 70px 20px 70px"></div>');
+		var options = {width:'100%',headerCls:'pointer',collapsed:true};
+		options.title = json[i].KEYWORD + '               --by' + json[i].RELEASER;
+		if(i == 0) options.collapsed = false;
+		options.content = json[i].SOLUTION;
+		options.id = json[i].ID;
+		$('#'+json[i].id).panel(options);
+	}
+	solutionId = 0;
+}
+
 function expandAll(){
 	$('#solution .panel-body').panel('expand',true);
 }
