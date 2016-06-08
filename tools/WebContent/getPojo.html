@@ -11,6 +11,10 @@
 function setval(a){
 	$('textarea[name="origin"]').val($(a).val());
 }
+function test(){
+// 	X.ajax({}, function(data){}, 'http://localhost:8081/JAVA.xlsx');
+	window.location.href='http://localhost:8081/JAVA.xlsx';
+}
 </script>
 <style>
 body > div{float:left;margin-left:15px;}
@@ -27,7 +31,7 @@ body > div{float:left;margin-left:15px;}
 </style>
 </head>
 <body>
-<input type="button" value="test" onclick="test();" hidden="hidden"/>
+<input type="button" value="test" onclick="test();"/>
 <div class="left">
 <div class="database"><label><input type="radio" name="dbType" value="0"/>SqlServer</label>
 <label><input type="radio" name="dbType" value="1" checked="checked"/>Oracle</label>

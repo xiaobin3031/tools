@@ -1,5 +1,6 @@
 var X={
 cons:{url:'action.php',pageSize:50,alertCode:-200},
+quests:[{"code":"00","name":"已创建"},{"code":"50","name":"已解决"}],
 init:function(){
     X.ajax({action:"userOrAdmin"},function(data){
            var json = X.toJson(data);

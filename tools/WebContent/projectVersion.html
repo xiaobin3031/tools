@@ -36,7 +36,7 @@
 		<div id="aa" class="easyui-layout" data-options="fit:true">
 			<div data-options="region:'west',split:true" style="width: 50%">
 				<div class="easyui-tabs" style="height:100%;" data-options="border:false">
-					<div title="未解决">
+					<div title="全部">
 						<table id="questions" class="easyui-datagrid" style="width:100%" data-options="
 								rownumbers:true,
 								singleSelect:true,
@@ -53,7 +53,7 @@
 								<th data-options="field:'title',width:'85%',editor:'validatebox'">Question</th>
 								<th data-options="field:'status',width:'10%',sortable:true,
 									editor:{type:'combobox',options:{
-										valueField:'code',textField:'name',method:'get',url:'json/questionsts.json'
+										valueField:'code',textField:'name',data:X.quests
 									}}">状态</th>
 							</tr>
 						</thead>
@@ -67,7 +67,7 @@
 						
 						<div style="width:100%;height:30px;margin-top:6px;overflow: hidden;position:fixed;z-index:100;">
 							<span style="width:5%;margin-left:5px;"></span>
-							<input class="easyui-searchbox" data-options="prompt:'Just Input Something',searcher:doSearch">
+							<input class="easyui-searchbox" data-options="prompt:'Just Input Something'">
 							<span >发布人:</span>
 							<select id="releaser" class="easyui-combobox" style="width:10%;"
 								data-options="textField:'text',valueField:'release'">
@@ -99,11 +99,11 @@
 	<div id="sub1WestBtn">
 		<a href="javascript:void(0)" class="icon-add" onclick="tabAdd();"></a>
 	</div>
-	<div id="buttons">
+	<div id="quesButtons">
 		<table style="border-spacing:0">
 			<tr>
 				<td>
-					<input class="easyui-searchbox" data-options="prompt:'Just Input Something',searcher:doSearch" style="width:150px">
+					<input class="easyui-searchbox" data-options="prompt:'Just Input Something',searcher:doQuesSearch" style="width:150px">
 				</td>
 				<td>
 					<a href="javascript:void(0)" onclick="addData();" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true"></a>

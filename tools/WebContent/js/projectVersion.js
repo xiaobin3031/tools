@@ -12,7 +12,7 @@ $(function(){
 		displayMsg:'{total} items all',
 		height:'50px',
 		overflow:'hidden',
-		buttons:$('#buttons'),
+		buttons:$('#quesButtons'),
 		onSelectPage:function(pageNumber,pageSize){
 			getQuestions();
 		}
@@ -42,9 +42,6 @@ function tabAdd(){
 	var data = {};
 	data.action = "1111";
 	X.ajax(data);
-}
-function doSearch(v){
-	alert('your input: '+v);
 }
 
 /**
@@ -148,7 +145,7 @@ function projectLevelSelect(v){
 /**
  * questions模块
  */
-function getQuestions(isRequired){
+function getQuestions(isRequired,searchTxt){
 	$('#solution').empty();
 	var q = $('#questions');
 	if(q.datagrid('getPager').pagination('options').loading) return;
@@ -157,7 +154,8 @@ function getQuestions(isRequired){
 	if(selected == null) return;
 	var pageNumber = q.datagrid('getPager').pagination('options').pageNumber;
 	pageNumber = pageNumber == 0 ? 1 : pageNumber;
-	if(pageNumber == 1 && isRequired){
+	if(pageNumber == 1 && !isRequired){
+		//说明显示缓存
 		if(!X.isEmpty(selected.childrenId)){
 			//说明是选中的子节点
 			if(question_cache.m('c'+selected.childrenId) != undefined){
@@ -180,6 +178,7 @@ function getQuestions(isRequired){
 	oData.childrenId = selected.childrenId;
 	oData.pageNumber = pageNumber;
 	oData.pageSize = pageSize;
+	if(!X.isEmpty(searchTxt)) oData.searchTxt = searchTxt;
 	X.ajax(oData, function(data){
 		var json = X.toJson(data);
 		setQuestions(json.rows);
@@ -190,6 +189,29 @@ function getQuestions(isRequired){
 			//说明是选中的父节点
 			question_cache.m('p'+selected.parentId,json.rows);
 	});
+}
+//问题查询框
+function doQuesSearch(v){
+	if(X.isEmpty(v)) return;
+	var q = $('#questions');
+	if(q.datagrid('getPager').pagination('options').total <= X.cons.pageSize){
+		//说明不足或刚好一页数据,不用查询数据库
+		var rows = q.datagrid('getRows');
+		var new_rows = new Array();
+		var regexp = new RegExp('^.*'+v+'.*$');
+		for(var i=0;i<rows.length;i++){
+			if(!rows[i].title.match(regexp)){} //q.datagrid('deleteRow',q.datagrid('getRowIndex',rows[i]));
+			else{
+				//将搜索的关键字标蓝
+				var _regexp = new RegExp(v,'g');
+				rows[i].title = rows[i].title.replace(_regexp,'<i style="color:blue;">'+v+'</i>');
+				new_rows.push(rows[i]);
+			}
+		}
+		setQuestions(new_rows);
+	}else{
+		getQuestions(true, v);
+	}
 }
 function setQuestions(rows){
 	$('#questions').datagrid('loadData',rows);
@@ -206,21 +228,18 @@ function addData(){
 		var index = q.datagrid('getRows').length - 1;
 		edit_index = index;
 		q.datagrid('selectRow',index).datagrid('beginEdit',index);
+		var comb = q.datagrid('getEditor',{index:edit_index,field:'status'});
+		$(comb.target).combobox('setValue','00');
 	}else
 		q.datagrid('selectRow',edit_index);
-	$('#questions').prev('div').find('.datagrid-body').find('table tbody tr:eq('+edit_index+')').find('input').focus();
+	$('#questions').prev('div').find('.datagrid-body').find('table tbody tr:eq('+edit_index+')').find('input:eq(0)').focus();
 }
 function endEditing(){
-	if(edit_index == undefined) return true;
-	if($('#questions').datagrid('validateRow',edit_index)){
-		$('#questions').datagrid('endEdit',edit_index);
-		return true;
-	}
-	return $('#questions').datagrid('getPager').pagination('options').loading;
+	return edit_index == undefined && !$('#questions').datagrid('getPager').pagination('options').loading;
 }
 function cancelData(isNeedConfirm){
 	if(!endEditing())
-		if(isNeedConfirm && confirm("sure to cancel adding?")){
+		if(!isNeedConfirm && confirm("sure to cancel adding?")){
 			$('#questions').datagrid('rejectChanges');
 			edit_index = undefined;
 			isAdd = false;
@@ -228,11 +247,12 @@ function cancelData(isNeedConfirm){
 		}
 }
 function saveData(){
-	if(!endEditing()) return;
-	var oData = {};
 	var q = $('#questions');
-	var selected = getTreeParentChildren();
+	q.datagrid('endEdit',edit_index);
 	var changedRows = q.datagrid('getChanges');
+	if(changedRows.length == 0 || edit_index == undefined) return;
+	var oData = {};
+	var selected = getTreeParentChildren();
 	if(changedRows.length > 0 && selected != null){
 		var id = new Array(),status = new Array(),question = new Array();
 		oData.action = 'questions';
@@ -242,7 +262,7 @@ function saveData(){
 		for(var i =0;i<changedRows.length;i++){
 			if(X.isEmpty(changedRows[i].title)) continue;
 			id.push(changedRows[i].id ? changedRows[i].id : '');
-			status.push(changedRows[i].status ? changedRows[i].status : '');
+			status.push(changedRows[i].status);
 			question.push(changedRows[i].title);
 		}
 		if(question.length == 0) return;
@@ -262,6 +282,7 @@ function saveData(){
 		});
 	}
 }
+//保存时，库存属性不能保存成功
 function removeData(){
 	if($('#questions').datagrid('getPager').pagination('options').loading) return;
 	if(confirm("sure to remove this data?")){
@@ -300,7 +321,7 @@ function questionDblRow(rowIndex,rowData){
 	$('#questions').datagrid('beginEdit',rowIndex);
 	if(edit_index != undefined) $('#questions').datagrid('endEdit',edit_index);
 	edit_index = rowIndex;
-	var a = $('#questions').prev('div').find('.datagrid-body').find('table tbody tr:eq('+edit_index+')').find('input');
+	var a = $('#questions').prev('div').find('.datagrid-body').find('table tbody tr:eq('+edit_index+')').find('input:eq(0)');
 	a.focus();
 	a.value = '';
 	a.value = rowData.title;

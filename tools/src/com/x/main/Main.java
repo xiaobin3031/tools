@@ -60,7 +60,8 @@ public class Main extends HttpServlet{
 				if("getQuestions".equals(subAction)){
 					String pageNumber = req.getParameter("pageNumber");
 					String status = req.getParameter("status");
-					json = q.getQuestions(username.toString(),Integer.parseInt(pageNumber),parentId,childrenId,status);
+					String searchTxt = req.getParameter("searchTxt");
+					json = q.getQuestions(username.toString(),Integer.parseInt(pageNumber),parentId,childrenId,status,searchTxt);
 				}else if("saveQuestion".equals(subAction)){
 					String[] id = req.getParameterValues("id[]");
 					String[] status = req.getParameterValues("status[]");

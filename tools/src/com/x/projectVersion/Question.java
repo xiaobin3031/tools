@@ -14,7 +14,7 @@ import com.x.util.Util;
  */
 public class Question {
 
-	public String getQuestions(String username,int pageNum,String parentId,String childrenId,String status){
+	public String getQuestions(String username,int pageNum,String parentId,String childrenId,String status,String searchTxt){
 		String json = JUtil.getCommJson(false);
 		StringBuffer sb = new StringBuffer();
 		SUtil sUtil = new SUtil();
@@ -31,6 +31,10 @@ public class Question {
 		if(Util.isNotNull(status)){
 			sb.append(" and q.STATUS = ?");
 			sUtil.add(status);
+		}
+		if(Util.isNotNull(searchTxt)){
+			sb.append(" and q.title like ?");
+			sUtil.add("%"+searchTxt+"%");
 		}
 		sb.append(" order by q.CHILDREN_ID,q.ID desc");
 		sUtil.setColumns("id,title,status");
