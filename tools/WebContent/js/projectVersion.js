@@ -110,7 +110,8 @@ function saveProject(){
 		if(json.success){
 			if($('#w input[name="isCloseAfterSave"]').is(':checked'))
 				$('#w').window('close');
-			$('#projectNames').tree('reload');
+			//$('#projectNames').tree('reload');
+			getProject();
 			cancelProject();
 		}else
 			X.dialog(json.resultMsg);
@@ -273,7 +274,7 @@ function saveData(){
 			var json = X.toJson(data);
 			if(json.success){
 				q.datagrid('acceptChanges');
-				getQuestions();
+				getQuestions(true);
 				edit_index = undefined;
 				isAdd = false;
 				isEdit = false;
@@ -380,7 +381,7 @@ function getSolution(id,isRequired){
 function setSolutions(json){
 	for(var i=0;i<json.length;i++){
 		$('#solution').append('<div id="'+json[i].id+'" class="easyui-panel" style="width:100%;padding:30px 70px 20px 70px"></div>');
-		var options = {width:'100%',headerCls:'pointer',collapsed:true};
+		var options = {width:'100%',headerCls:'pointer',collapsed:true,iconCls:'icon-edit'};
 		options.title = json[i].KEYWORD + '               --by' + json[i].RELEASER;
 		if(i == 0) options.collapsed = false;
 		options.content = json[i].SOLUTION;
