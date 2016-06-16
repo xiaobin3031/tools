@@ -163,6 +163,41 @@ dialog:function(v,c){
 	if(c == X.cons.alertCode)
 		alert(v);
 },
+loginDialog:function(id){
+	var t = new Text();
+	$('#'+id).empty();
+	$('#'+id).append('<div id="'+id+'Win" class="easyui-window"></div>');
+	var options = {width:400,height:250,modal:true,resizable:false};
+	options.title="";
+	$('#'+id+'Win').window(options).append('<div id="'+id+'WinLayout" class="easyui-layout" data-options="fit:true"></div>');
+	$('#'+id+'WinLayout').layout();
+	$('#'+id+'WinLayout').layout('add',{    
+	    region: 'south',    
+	    height: '25%' ,
+	}); 
+	$('#'+id+'WinLayout').layout('add',{    
+	    region: 'center',
+	    height:'75%'
+	}); 
+	t._('<div style="padding:20px;text-align:center;">')
+	._('<div style="margin-top:15px;"><span>用  户: </span><input id="loginname" type="text" style="width:60%;height:30px;"></div>')
+	._('<div style="margin-top:15px;"><span>密  码: </span><input id="pass" type="password" style="width:60%;height:30px;"></div>')
+	._('</div>');
+	$('#'+id+'WinLayout').layout('panel','center').append(t.toString());
+	$('#loginname').textbox();
+	$('#pass').textbox();
+	t.close();
+	t._('<div style="width:40%;text-align:center;float:left;margin-left:10%;margin-top:20px;">')
+	._('<a id="'+id+'WinLayoutOKBtn" class="easyui-linkbutton" data-options="iconCls:\'icon-ok\'" ')
+	._('href="javascript:void(0)" onclick="login();" style="width:80px">登录</a></div>')
+	._('<div style="width:40%;text-align:center;float:left;margin-top:20px;">')
+	._('<a id="'+id+'WinLayoutCANBtn" class="easyui-linkbutton" data-options="iconCls:\'icon-cancel\'" ')
+	._('href="javascript:void(0)" onclick="regist();" style="width:80px">注册</a>')
+	._('</div>');
+	$('#'+id+'WinLayout').layout('panel','south').append(t.toString());
+	$('#'+id+'WinLayoutOKBtn').linkbutton();
+	$('#'+id+'WinLayoutCANBtn').linkbutton();
+},
 //比较json对象的键值对个数和给定数值的大小，如果com空，则返回data的键值对个数
 getObjLenOrCompare:function(data,com){
     var size = 0;
@@ -389,4 +424,35 @@ function _x(v,i){
 	}else
 		return '';
 	
+}
+
+function login(){
+	var oData = {};
+	oData.loginname = $('#loginname').textbox('getValue');
+	oData.pass = $('#pass').textbox('getValue');
+	oData.action = 'login';
+	oData.subAction = 'login';
+	X.ajax(oData,function(data){
+		var json = X.toJson(data);
+		if(json.success){
+			location.replace('projectVersion.html');
+		}else{
+			X.dialog(json.resultMsg,json.code);
+		}
+	});
+}
+function regist(){
+	var oData = {};
+	oData.loginname = $('#loginname').textbox('getValue');
+	oData.pass = $('#pass').textbox('getValue');
+	oData.action = 'login';
+	oData.subAction = 'regist';
+	X.ajax(oData,function(data){
+		var json = X.toJson(data);
+		if(json.success){
+			location.replace('projectVersion.html');
+		}else{
+			X.dialog(json.resultMsg,json.code);
+		}
+	});
 }

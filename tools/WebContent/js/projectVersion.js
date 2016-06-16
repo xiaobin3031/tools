@@ -333,6 +333,7 @@ function questionDblRow(rowIndex,rowData){
 function getTreeParentChildren(){
 	if(!$('#projectNames').tree('getSelected')) return null;
 	var selected = $('#projectNames').tree('getSelected');
+	$('#projectNames').tree('expand',selected.target);
 	var oData = {};
 	if($('#projectNames').tree('isLeaf',selected.target)){
 		var parent = $('#projectNames').tree('getParent',selected.target);
