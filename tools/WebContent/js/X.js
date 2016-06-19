@@ -1,6 +1,17 @@
+var usernametext = 'loginname',passtext = 'pass';
+$(function(){
+	if(X.isEmpty(X.cookie.get('username'))){
+		var oData = {};
+		oData.action = 'login';
+		oData.action = 'isLogin';
+		X.ajax(oData,function(data){
+			var json = X.toJson(data);
+			if(json.success) X.cookie.set({username:json.resultMsg});
+		});
+	}
+});
 var X={
-cons:{url:'action.php',pageSize:50,alertCode:-200},
-quests:[{"code":"00","name":"已创建"},{"code":"50","name":"已解决"}],
+cons:{url:'action.php',pageSize:50,alertCode:-200,notLogin:-101},
 init:function(){
     X.ajax({action:"userOrAdmin"},function(data){
            var json = X.toJson(data);
@@ -12,6 +23,11 @@ init:function(){
            });
 },
 ajax:function(data,callback,url){
+	//发送请求前，查看cookie是否存在
+	if(X.isEmpty(X.cookie.get('username'))){
+		X.loginDialog();
+		return;
+	}
     var s = {};
     s.type="POST";
     s.url = X.isEmpty(url) ? X.cons.url : url;
@@ -53,7 +69,11 @@ getWeatherImg:function(weatherDes){
 toJson:function(data){
     //		return JSON.parse(data);
     //		return $.parseJSON(data);
-    return eval('('+data+')');
+	var json = eval('('+data+')');
+	if(json.success == false && X.cons.notLogin == json.code){
+		X.loginDialog();
+	}
+    return json;
 },
 isEmpty:function(v){
     switch (typeof v){
@@ -165,8 +185,9 @@ dialog:function(v,c){
 },
 loginDialog:function(id){
 	var t = new Text();
-	$('#'+id).empty();
-	$('#'+id).append('<div id="'+id+'Win" class="easyui-window"></div>');
+	if(X.isEmpty(id)) id = 'login';
+	if($('#'+id+'Win').length > 0) $('#'+id+'Win').remove();
+	$('body').append('<div id="'+id+'Win" class="easyui-window"></div>');
 	var options = {width:400,height:250,modal:true,resizable:false};
 	options.title="";
 	$('#'+id+'Win').window(options).append('<div id="'+id+'WinLayout" class="easyui-layout" data-options="fit:true"></div>');
@@ -180,12 +201,12 @@ loginDialog:function(id){
 	    height:'75%'
 	}); 
 	t._('<div style="padding:20px;text-align:center;">')
-	._('<div style="margin-top:15px;"><span>用  户: </span><input id="loginname" type="text" style="width:60%;height:30px;"></div>')
-	._('<div style="margin-top:15px;"><span>密  码: </span><input id="pass" type="password" style="width:60%;height:30px;"></div>')
+	._('<div style="margin-top:15px;"><span>用  户: </span><input id="'+usernametext+'" required="true" type="text" style="width:60%;height:30px;"></div>')
+	._('<div style="margin-top:15px;"><span>密  码: </span><input id="'+passtext+'" required="true" type="password" style="width:60%;height:30px;"></div>')
 	._('</div>');
 	$('#'+id+'WinLayout').layout('panel','center').append(t.toString());
-	$('#loginname').textbox();
-	$('#pass').textbox();
+	$('#'+usernametext).textbox();
+	$('#'+passtext).textbox();
 	t.close();
 	t._('<div style="width:40%;text-align:center;float:left;margin-left:10%;margin-top:20px;">')
 	._('<a id="'+id+'WinLayoutOKBtn" class="easyui-linkbutton" data-options="iconCls:\'icon-ok\'" ')
@@ -197,6 +218,13 @@ loginDialog:function(id){
 	$('#'+id+'WinLayout').layout('panel','south').append(t.toString());
 	$('#'+id+'WinLayoutOKBtn').linkbutton();
 	$('#'+id+'WinLayoutCANBtn').linkbutton();
+	$('#'+usernametext).textbox('textbox').bind('keyup',function(e){
+		loginDialogKeyup(e, id);
+	});
+	$('#'+passtext).textbox('textbox').bind('keyup',function(e){
+		loginDialogKeyup(e, id);
+	});
+	$('#'+usernametext).textbox('textbox').focus();
 },
 //比较json对象的键值对个数和给定数值的大小，如果com空，则返回data的键值对个数
 getObjLenOrCompare:function(data,com){
@@ -337,7 +365,7 @@ set:function(cookies,expiredays){
 },
 get:function(name){
     if(X.isEmpty(name)) return '';
-    if(name == 'username') return '18505880795';
+//    if(name == 'username') return '18505880795';
     if(document.cookie.length>0){
         var c_start = document.cookie.indexOf(name+'=');
         if(c_start >= 0){
@@ -428,31 +456,60 @@ function _x(v,i){
 
 function login(){
 	var oData = {};
-	oData.loginname = $('#loginname').textbox('getValue');
+	oData.loginname = $('#'+usernametext).textbox('getValue');
+	if(X.isEmpty(oData.loginname)) {
+		$('#'+usernametext).textbox('textbox').focus();
+		return;
+	}
 	oData.pass = $('#pass').textbox('getValue');
+	if(X.isEmpty(oData.pass)){
+		$('#pass').textbox('textbox').focus();
+		return;
+	}
 	oData.action = 'login';
 	oData.subAction = 'login';
 	X.ajax(oData,function(data){
 		var json = X.toJson(data);
 		if(json.success){
-			location.replace('projectVersion.html');
+			X.cookie.set({username:oData.loginname});
+			location.reload(true);
 		}else{
 			X.dialog(json.resultMsg,json.code);
+			$('#'+usernametext).linkbutton('enable');
+			$('#'+passtext).linkbutton('enable');
 		}
 	});
+	$('#'+usernametext).linkbutton('disable');
+	$('#'+passtext).linkbutton('disable');
 }
 function regist(){
 	var oData = {};
-	oData.loginname = $('#loginname').textbox('getValue');
-	oData.pass = $('#pass').textbox('getValue');
+	oData.loginname = $('#'+usernametext).textbox('getValue');
+	if(X.isEmpty(oData.loginname)) {
+		$('#'+usernametext).textbox('textbox').focus();
+		return;
+	}
+	oData.pass = $('#'+passtext).textbox('getValue');
+	if(X.isEmpty(oData.pass)){
+		$('#'+passtext).textbox('textbox').focus();
+		return;
+	}
 	oData.action = 'login';
 	oData.subAction = 'regist';
 	X.ajax(oData,function(data){
 		var json = X.toJson(data);
 		if(json.success){
-			location.replace('projectVersion.html');
+			X.cookie.set({username:oData.loginname});
+			location.reload(true);
 		}else{
 			X.dialog(json.resultMsg,json.code);
+			$('#'+usernametext).linkbutton('enable');
+			$('#'+passtext).linkbutton('enable');
 		}
 	});
+	$('#'+usernametext).linkbutton('disable');
+	$('#'+passtext).linkbutton('disable');
+}
+function loginDialogKeyup(e,id){
+	if(e.keyCode == 13) $('#'+id+'WinLayoutOKBtn').click();
 }

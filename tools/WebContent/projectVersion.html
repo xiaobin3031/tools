@@ -13,9 +13,7 @@
 <script type="text/javascript">
 </script>
 <style>
-.easyui-accordion a {
-	display: block;
-}
+
 </style>
 </head>
 <body class="easyui-layout">
@@ -33,40 +31,80 @@
 		region</div>
 	<div data-options="region:'east',border:false,collapsed:true,title:'East'" style="width:100px;padding:10px;"></div>
 	<div data-options="region:'center',border:false">
-		<div id="aa" class="easyui-layout" data-options="fit:true">
-			<div data-options="region:'west',split:true" style="width: 50%">
-				<div class="easyui-tabs" style="height:100%;" data-options="border:false">
-					<div title="全部">
-						<div class="easyui-panel" data-options="border:false" style="height:80%;">
-							<table id="questions" class="easyui-datagrid" style="width:100%" data-options="
-								rownumbers:true,
+		<div class="easyui-layout" data-options="fit:true">
+			<div data-options="region:'west',split:true,border:false" style="width: 60%">
+				<div class="easyui-panel" style="width:100%;height:80%;">
+					<div id="quesLayout" class="easyui-layout" data-options="fit:true">
+						<div data-options="title:'All Your Friends',region:'west',
+							collapsed:true,collapsible:false,tools:'#quesWestBtn',disable:true" style="width:20%">
+							<table id="friends" class="easyui-datagrid" style="width:100%" data-options="
 								autoRowHeight:true,
-								pagination:true,
-								pageSize:50,
-								singleSelect:true,
+								checkOnSelect:false,
 								selectOnCheck:false,
+								singleSelect:true,
 								fit:true,
-								border:false,
-								onSelect:onSelectRow,
-								onDblClickRow:questionDblRow,
-								showFooter:true,
-								showFooter:true">
-							<thead>
-								<tr>
-									<th data-options="field:'ck',checkbox:true"></th>
-									<th data-options="field:'id',width:'5%'">编号</th>
-									<th data-options="field:'title',width:'85%',editor:'validatebox'">Question</th>
-									<th data-options="field:'status',width:'10%',sortable:true,
-										editor:{type:'combobox',options:{
-											valueField:'code',textField:'name',data:X.quests
-										}}">状态</th>
-								</tr>
-							</thead>
+								border:false">
+								<thead>
+									<tr>
+										<th data-options="field:'userid',width:'80%',align:'right'">好友ID</th>
+										<th data-options="field:'friend_ck',checkbox:true"></th>
+									</tr>
+								</thead>
 							</table>
 						</div>
-						<div class="easyui-panel" data-options="title:'notes',border:false" style="height:20%;"></div>
+						<div data-options="region:'center',border:false">
+							<div id="quesTabs" class="easyui-tabs" style="height:100%;" data-options="border:false,onSelect:quesTabSelect">
+								<div title="全部">
+									<table id="questions" class="easyui-datagrid" style="width:100%" data-options="
+										rownumbers:true, 
+										autoRowHeight:true, 
+										pagination:true, 
+										pageSize:50, 
+										singleSelect:true, 
+										checkOnSelect:false, 
+										selectOnCheck:false, 
+										fit:true, 
+										border:false, 
+										onSelect:onSelectRow, 
+										onDblClickRow:questionDblRow, 
+										showFooter:true"> 
+										<thead>
+											<tr>
+												<th data-options="field:'ques_ck',checkbox:true,hidden:true"></th>
+												<th data-options="field:'id',width:'5%'">编号</th>
+												<th data-options="field:'title',width:'75%',editor:'validatebox'">Question</th>
+												<th data-options="field:'status',width:'10%',
+													editor:{type:'combobox',options:{ 
+														valueField:'code',textField:'name',url:'json/questionsts.json',method:'get' 
+													}}">状态</th> 
+											</tr>
+										</thead>
+									</table>
+								</div>
+								<div title="共享">
+									<table id="shareQuestions" class="easyui-datagrid" style="width:100%" data-options="
+										rownumbers:true,
+										autoRowHeight:true,
+										pagination:true,
+										pageSize:50,
+										singleSelect:true,
+										fit:true,
+										border:false">
+										<thead>
+											<tr>
+												<th data-options="field:'id',width:'5%'">编号</th>
+												<th data-options="field:'title',width:'70%',editor:'validatebox'">Question</th>
+												<th data-options="field:'status',width:'10%'">状态</th>
+												<th data-options="field:'sharedby',width:'10%'">共享自</th>
+											</tr>
+										</thead>
+									</table>
+								</div>
+							</div>
+						</div>
 					</div>
 				</div>
+				<div class="easyui-panel" data-options="title:'notes',border:false" style="height:20%;"></div>
 			</div>
 			<div data-options="region:'center',border:true">
 				<div class="easyui-layout" data-options="fit:true">
@@ -84,7 +122,7 @@
 						  	<a href="javascript:void(0)" class="easyui-linkbutton" 
 						  		onclick="collapseAll();" data-options="text:'全部折叠'"></a>
 							<a href="javascript:void(0)" class="easyui-linkbutton" 
-								onclick="addSolution();" data-options="iconCls:'icon-add',plain:true" style="padding-left:5%;"></a>
+								onclick="addSolution();" data-options="iconCls:'icon-add',plain:true"></a>
 							<a href="javascript:void(0)" class="easyui-linkbutton" 
 								onclick="saveSolution();" data-options="iconCls:'icon-save',plain:true"></a>
 							<a href="javascript:void(0)" class="easyui-linkbutton" 
@@ -103,6 +141,10 @@
 	<div id="mainWestBtn">
 		<a href="javascript:void(0)" class="icon-add" onclick="addProject();"></a>
 	</div>
+	<div id="quesWestBtn">
+		<a href="javascript:void(0)" class="icon-ok" onclick="shareQues();" style="padding-right:20px;"></a>
+		<a href="javascript:void(0)" class="icon-cancel" onclick="cancelShareQues();"></a>
+	</div>
 	<div id="sub1WestBtn">
 		<a href="javascript:void(0)" class="icon-add" onclick="tabAdd();"></a>
 	</div>
@@ -113,7 +155,7 @@
 					<input class="easyui-searchbox" data-options="prompt:'Just Input Something',searcher:doQuesSearch" style="width:150px;">
 				</td>
 				<td>
-					<a href="javascript:void(0)" onclick="addData();" class="easyui-linkbutton" data-options="iconCls:'icon-share',plain:true"></a>
+					<a href="javascript:void(0)" onclick="shareData();" class="easyui-linkbutton" data-options="iconCls:'icon-share',plain:true"></a>
 					<a href="javascript:void(0)" onclick="addData();" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true"></a>
 					<a href="javascript:void(0)" onclick="saveData();" class="easyui-linkbutton" data-options="iconCls:'icon-save',plain:true"></a>
 					<a href="javascript:void(0)" onclick="removeData();" class="easyui-linkbutton" data-options="iconCls:'icon-cancel',plain:true"></a>

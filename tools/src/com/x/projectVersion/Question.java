@@ -39,7 +39,7 @@ public class Question {
 		sb.append(" order by q.CHILDREN_ID,q.ID desc");
 		sUtil.setColumns("id,title,status");
 		List<String> rows = sUtil.fetch(sb.toString(), pageNum);
-		json = "{\"total\":"+sUtil.getTotalCount()+",\"rows\":"+rows.toString()+",\"success\":true}";
+		json = JUtil.getDatagrid(sUtil.getTotalCount(), rows.toString());
 		return json;
 	}
 	

@@ -11,11 +11,10 @@
 <link rel="stylesheet" type="text/css" href="css/icon.css"/>
 <script type="text/javascript">
 $(function(){
-	X.loginDialog('login');
+	if(!X.isEmpty(X.cookie.get('username'))) location.replace('projectVersion.html');
 });
 </script>
 </head>
 <body class="easyui-layout">
-<div id="login" style="width:100%;height:100%;"></div>
 </body>
 </html>

@@ -111,4 +111,7 @@ public class JUtil {
 		return "["+json.substring(0,json.length()-1)+"]";
 	}
 
+	public static String getDatagrid(int totalCount,String rows){
+		return "{\"total\":"+totalCount+",\"rows\":"+rows+",\"success\":true}";
+	}
 }

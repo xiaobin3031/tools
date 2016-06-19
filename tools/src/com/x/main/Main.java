@@ -10,8 +10,10 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import com.x.pojo.Pojo;
+import com.x.projectVersion.Friends;
 import com.x.projectVersion.Project;
 import com.x.projectVersion.Question;
+import com.x.projectVersion.Share;
 import com.x.projectVersion.Solution;
 import com.x.projectVersion.User;
 import com.x.util.Const;
@@ -44,7 +46,10 @@ public class Main extends HttpServlet{
 		String action = req.getParameter("action");
 		String subAction = req.getParameter("subAction");
 		if("login".equals(action)){
-			if("login".equals(subAction)){
+			if("isLogin".equals(subAction)){
+				if(Util.isNotNull(username)) json = JUtil.getCommJson(true);
+				else json = JUtil.getJson(username.toString(), Const.notLogin, false);
+			}else if("login".equals(subAction)){
 				String loginname = req.getParameter("loginname");
 				String pass = req.getParameter("pass");
 				User user = new User();
@@ -114,6 +119,20 @@ public class Main extends HttpServlet{
 					}else if("removeSolution".equals(subAction)){
 						String id = req.getParameter("id");
 						json = a.removeSolution(id,username.toString());
+					}
+				}else if("friends".equals(action)){
+					Friends f = new Friends();
+					if("getFriends".equals(subAction))
+						json = f.getFriends(username.toString());
+				}else if("share".equals(action)){
+					Share s = new Share();
+					if("getShare".equals(subAction)){
+						String pageNumber = req.getParameter("pageNumber");
+						json = s.getShare(username.toString(), Integer.parseInt(pageNumber));
+					}else if("saveShare".equals(subAction)){
+						String[] userids = req.getParameterValues("userids[]");
+						String[] questionids = req.getParameterValues("questionids[]");
+						json = s.saveShare(username.toString(), userids, questionids);
 					}
 				}else if("getPojo".equals(action)){
 					Pojo p = new Pojo();
