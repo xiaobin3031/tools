@@ -1,4 +1,4 @@
-var usernametext = 'loginname',passtext = 'pass';
+var usernametext = 'loginname',passtext = 'pass',globalNotes = undefined,notesFlag = false;
 $(function(){
 	if(X.isEmpty(X.cookie.get('username'))){
 		var oData = {};
@@ -24,10 +24,6 @@ init:function(){
 },
 ajax:function(data,callback,url){
 	//发送请求前，查看cookie是否存在
-	if(X.isEmpty(X.cookie.get('username'))){
-		X.loginDialog();
-		return;
-	}
     var s = {};
     s.type="POST";
     s.url = X.isEmpty(url) ? X.cons.url : url;
@@ -180,8 +176,28 @@ loadXMLString:function(dname){
     return xmlDoc;
 },
 dialog:function(v,c){
-	if(c == X.cons.alertCode)
-		alert(v);
+	if($('#globalNotes').length > 0 && !X.isEmpty(v)){
+		if(c >= 0)
+			//warn
+			$('#globalNotes').css('background-color','#00CCFF');
+		else
+			//error
+			$('#globalNotes').css('background-color','#FF0033');
+		$('#globalNotes span').text(v);
+		//动画展示
+		$('#globalNotes').animate({bottom:'0px'},500);
+		if(globalNotes != undefined){
+			//说明定时器已经触发，取消动画并且取消定时
+			$('#globalNotes').stop();
+			window.clearTimeout(globalNotes);
+			globalNotes = undefined;
+		}
+		globalNotes = window.setTimeout(function(){
+			$('#globalNotes').animate({bottom:'-30px'},'slow');
+			window.clearTimeout(globalNotes);
+			globalNotes = undefined;
+		},3*1000);
+	}
 },
 loginDialog:function(id){
 	var t = new Text();
@@ -461,9 +477,9 @@ function login(){
 		$('#'+usernametext).textbox('textbox').focus();
 		return;
 	}
-	oData.pass = $('#pass').textbox('getValue');
+	oData.pass = $('#'+passtext).textbox('getValue');
 	if(X.isEmpty(oData.pass)){
-		$('#pass').textbox('textbox').focus();
+		$('#'+passtext).textbox('textbox').focus();
 		return;
 	}
 	oData.action = 'login';

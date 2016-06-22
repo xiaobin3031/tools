@@ -12,3 +12,26 @@
 	height:30px;
 	float:left;
 }
+.notes{
+	vertical-align: middle;
+	line-height: 30px;
+	color: white;
+	font-size: 1.2em;
+}
+.notes_body{
+	height:30px;
+	padding:0 10px;
+	bottom:-30px;
+	position:absolute;
+	left:45%;
+	text-align:center;
+	border-radius:15px;
+	-moz-border-radius:15px;
+	-webkit-border-radius:15px;
+}
+.err_notes{
+	background-color: #FF0033;
+}
+.warn_notes{
+	background-color: #OOCCFF;
+}

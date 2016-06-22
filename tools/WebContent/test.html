@@ -10,10 +10,15 @@
 <link rel="stylesheet" type="text/css" href="css/easyui.css"/>
 <link rel="stylesheet" type="text/css" href="css/icon.css"/>
 <script type="text/javascript">
-
+$(function(){
+	$('#aa').val('aa');
+	X.ajax({action:'test'},function(data){
+		$('#aa').val(data);
+	});
+});
 </script>
 </head>
 <body>
-<embed src="1.mp3" loop="true" autostart="true" hidden="hidden">
+<input id="aa" type="text"/>
 </body>
 </html>

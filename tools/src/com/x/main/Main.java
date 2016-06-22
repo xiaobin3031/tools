@@ -101,6 +101,10 @@ public class Main extends HttpServlet{
 					}else if("removeQuestion".equals(subAction)){
 						String id = req.getParameter("id");
 						json = q.removeQuestion(username.toString(), id);
+					}else if("saveQuesNotes".equals(subAction)){
+						String questionid = req.getParameter("questionid");
+						String notes = req.getParameter("notes");
+						json = q.saveQuesNotes(username.toString(), questionid, notes);
 					}
 				}else if("solution".equals(action)){
 					Solution a = new Solution();

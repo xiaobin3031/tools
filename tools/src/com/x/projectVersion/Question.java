@@ -19,7 +19,7 @@ public class Question {
 		StringBuffer sb = new StringBuffer();
 		SUtil sUtil = new SUtil();
 		sb.append("select")
-		.append(" q.id,q.title,bc.name as status")
+		.append(" q.id,q.title,bc.name as status,ifnull(q.notes,'') as notes")
 		.append(" from QUESTIONS q left join BASCODES bc on q.STATUS = bc.code and bc.codeid = 'QUE_STS'")
 		.append(" where q.ACTIVE_FLAG = 'Y'")
 		.append(" and q.ADDWHO = ? and q.PARENT_ID = ?");
@@ -37,7 +37,7 @@ public class Question {
 			sUtil.add("%"+searchTxt+"%");
 		}
 		sb.append(" order by q.CHILDREN_ID,q.ID desc");
-		sUtil.setColumns("id,title,status");
+		sUtil.setColumns("id,title,status,notes");
 		List<String> rows = sUtil.fetch(sb.toString(), pageNum);
 		json = JUtil.getDatagrid(sUtil.getTotalCount(), rows.toString());
 		return json;
@@ -69,5 +69,13 @@ public class Question {
 		json = sUtil.update("delete from QUESTIONS where id = ? and ADDWHO = ?");*/
 		json = JUtil.getJson("暂不开放删除功能,请与管理员联系", Const.alertCode, false);
 		return json;
+	}
+	
+	public String saveQuesNotes(String username,String questionid,String notes){
+		StringBuffer sb = new StringBuffer();
+		sb.append("update questions set notes = ? where id = ? and addwho = ?");
+		SUtil sUtil = new SUtil();
+		sUtil.add(notes,questionid,username);
+		return sUtil.update(sb.toString());
 	}
 }

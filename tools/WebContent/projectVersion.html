@@ -11,6 +11,12 @@
 <link rel="stylesheet" type="text/css" href="css/icon.css" />
 <link rel="stylesheet" type="text/css" href="css/X.css" />
 <script type="text/javascript">
+// var a = true;
+// function test(){
+// 	if(a) $('#globalNotes').animate({bottom:'-30px'},'slow');
+// 	else $('#globalNotes').animate({bottom:'0px'},'slow');
+// 	a = !a;
+// }
 </script>
 <style>
 
@@ -18,10 +24,15 @@
 </head>
 <body class="easyui-layout">
 	<div data-options="region:'north',border:false"
-		style="height: 60px; background: #B3DFDA; padding: 10px">north
-		region</div>
+		style="height: 60px; background: #B3DFDA;">north
+		region
+		<div id="globalNotes" class="notes_body">
+			<span class="notes">操作结果</span>
+		</div>
+<!-- 		<input type="button" onclick="test();" value="Test"/> -->
+	</div>
 	<div
-		data-options="region:'west',split:true,title:'ProjectName',tools:'#mainWestBtn'"
+		data-options="region:'west',split:true,title:'ProjectName',tools:'#mainWestBtn',collapsible:false"
 		style="width: 10%; padding: 10px;">
 		<ul id="projectNames" class="easyui-tree" 
 			data-options="animate:true,lines:true,onSelect:getQuestions,onlyLeafCheck:true">
@@ -77,6 +88,7 @@
 													editor:{type:'combobox',options:{ 
 														valueField:'code',textField:'name',url:'json/questionsts.json',method:'get' 
 													}}">状态</th> 
+												<th data-options="field:'notes',hidden:true"></th>
 											</tr>
 										</thead>
 									</table>
@@ -104,7 +116,9 @@
 						</div>
 					</div>
 				</div>
-				<div class="easyui-panel" data-options="title:'notes',border:false" style="height:20%;"></div>
+				<div id="quesNotePanel" class="easyui-panel" data-options="title:'notes',border:false,tools:'#quesNoteBtn'" style="height:20%;padding:10px;">
+					<span id="notes_span"></span>
+				</div>
 			</div>
 			<div data-options="region:'center',border:true">
 				<div class="easyui-layout" data-options="fit:true">
@@ -164,11 +178,10 @@
 			</tr>
 		</table>
 	</div>
-	<div id="simpleButtons">
-		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true"></a>
-		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-save',plain:true"></a>
-		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-cancel',plain:true"></a>
-		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-redo',plain:true"></a>
+	<div id="quesNoteBtn">
+		<a href="javascript:void(0)" class="easyui-linkbutton" onclick="editQuesNote();" data-options="iconCls:'icon-edit',plain:true"></a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" onclick="saveQuesNote();" data-options="iconCls:'icon-save',plain:true"></a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" onclick="cancelQuesNote();" data-options="iconCls:'icon-cancel',plain:true"></a>
 	</div>
 	<div id="w" class="easyui-window" title="AddProject" data-options="iconCls:'icon-save',closed:true,modal:true
 		,maximizable:false,minimizable:false,collapsible:false" 

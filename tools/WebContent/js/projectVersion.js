@@ -198,6 +198,7 @@ function getQuestions(isRequired,searchTxt){
 	if(!X.isEmpty(searchTxt)) oData.searchTxt = searchTxt;
 	X.ajax(oData, function(data){
 		var json = X.toJson(data);
+		X.dialog(json.resultMsg, json.code);
 		setQuestions(json.rows);
 		if(!X.isEmpty(selected.childrenId)){
 			//说明是选中的子节点
@@ -300,6 +301,43 @@ function cancelShareQues(){
 	$('#questions').datagrid('hideColumn','ques_ck');
 	$('#questions').datagrid('uncheckAll');
 }
+function editQuesNote(){
+	if($('#questions').datagrid('getSelected') != null && $('#notes_span').length > 0){
+		$('#quesNotePanel').empty();
+		$('#quesNotePanel').append('<input id="ques_input">');
+		var options = {};
+		options.multiline = true;
+		options.width = '100%';
+		options.height = '100%';
+		$('#ques_input').textbox(options);
+		$('#ques_input').textbox('setValue',$('#questions').datagrid('getSelected').notes);
+		$('#ques_input').next('span').find('textarea').focus();
+	}
+}
+function saveQuesNote(){
+	if($('#questions').datagrid('getSelected') != null && $('#ques_input').length > 0){
+		var oData = {};
+		oData.action = 'questions';
+		oData.subAction = 'saveQuesNotes';
+		oData.questionid = $('#questions').datagrid('getSelected').id;
+		oData.notes = $('#ques_input').textbox('getValue');
+		X.ajax(oData,function(data){
+			var json = X.toJson(data);
+			if(json.success){
+				$('#questions').datagrid('getSelected').notes = oData.notes;
+				cancelQuesNote();
+			}else
+				X.dialog(json.resultMsg, json.code);
+		});
+	}
+}
+function cancelQuesNote(){
+	if($('#questions').datagrid('getSelected') != null && $('#ques_input').length > 0){
+		$('#quesNotePanel').empty();
+		$('#quesNotePanel').append('<span id="notes_span"></span>');
+		$('#notes_span').text($('#questions').datagrid('getSelected').notes);
+	}
+}
 function addData(){
 	var q = $('#questions');
 	if(endEditing() || !isEdit){
@@ -393,6 +431,11 @@ function onSelectRow(index,data){
 	rowIndex = index;rowSelectedData = data;
 	if(isEdit) $('#questions').datagrid('endEdit',edit_index);
 	if(data.id == undefined) return;
+	if($('#notes_span').length <= 0){
+		$('#quesNotePanel').empty();
+		$('#quesNotePanel').append('<span id="notes_span"></span>');
+	}
+	$('#notes_span').text(data.notes);
 	getSolution(data.id);
 }
 function questionDblRow(rowIndex,rowData){
