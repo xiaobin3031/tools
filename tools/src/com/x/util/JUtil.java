@@ -114,6 +114,6 @@ public class JUtil {
 	public static String getDatagrid(int totalCount,String rows){
 		String resultMsg = "";
 		if(totalCount <= 0) resultMsg = "未找到任何数据!";
-		return "{\"total\":"+totalCount+",\"rows\":"+rows+",\"success\":true,\"code\":"+(totalCount - 1)+",\"resultMsg\":\""+resultMsg+"\"}";
+		return "{\"total\":"+totalCount+",\"rows\":"+rows+",\"success\":true,\"code\":"+totalCount+",\"resultMsg\":\""+resultMsg+"\"}";
 	}
 }

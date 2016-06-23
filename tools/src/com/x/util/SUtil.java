@@ -23,14 +23,46 @@ public class SUtil{
 	private boolean isNeedPage;			//是否需要分页
 	private int totalCount = 0;			//isNeedCount == true的情况下,计算SQL的总记录数
 	
+	/**
+	 * 获取该次查询的总数
+	 * @return
+	 */
 	public int getTotalCount() {return totalCount;}
+	/**
+	 * 设置该次查询的总数
+	 * @param totalCount
+	 */
 	public void setTotalCount(int totalCount) {this.totalCount = totalCount;}
+	/**
+	 * 构造器，默认isNeedCount和isNeedPage都为true
+	 */
 	public SUtil() {isNeedCount = true;isNeedPage = true;}
+	/**
+	 * 构造器，设置isNeedCount和isNeedPage两者一样的boolean值
+	 * @param isNeed
+	 */
 	public SUtil(boolean isNeed){this.isNeedCount = isNeed;this.isNeedPage = isNeed;}
+	/**
+	 * 构造器，分别设置isNeedCount和isNeedPage的boolean值
+	 * @param isNeedCount
+	 * @param isNeedPage
+	 */
 	public SUtil(boolean isNeedCount,boolean isNeedPage){this.isNeedCount = isNeedCount;this.isNeedPage = isNeedPage;}
 	
+	/**
+	 * 设置需要查询的列
+	 * @param column
+	 */
 	public void setColumns(String column){this.column = column;}
+	/**
+	 * 设置条件(适用select,update,delete)
+	 * @param strs
+	 */
 	public void add(String... strs){for(String str : strs) condition.add(str);}
+	/**
+	 * 批量设置条件(适用update,delete)
+	 * @param strs
+	 */
 	public void addList(String... strs){ArrayList<String> _condition = new ArrayList<String>();for(String str : strs) _condition.add(str);conditionList.add(_condition);}
 	
 	/**
@@ -102,9 +134,8 @@ public class SUtil{
 				ps.setString(i+1, condition.get(i));
 			rCount = ps.executeUpdate();
 			con.commit();
-			if(rCount == -1) json = JUtil.getJson("操作失败,请重试!", -1, false);
-			else if(rCount == 0) json = JUtil.getJson("未修改任何数据", 0, false);
-			else json = JUtil.getCommJson(true);
+			if(rCount == -1) json = JUtil.getJson("操作失败,请重试!", Const.fail, false);
+			else json = JUtil.getJson("更新成功,影响数据数: "+rCount, Const.success, true);
 		} catch (Exception e) {
 			try {
 				con.rollback();
@@ -112,6 +143,7 @@ public class SUtil{
 				e1.printStackTrace();
 			}
 			e.printStackTrace();
+			json = JUtil.getJson("操作异常,原因: "+e.getMessage(), Const.fail, false);
 		} finally{
 			DB.getInstance().close(con, ps);
 			condition.clear();
@@ -119,10 +151,16 @@ public class SUtil{
 		return json;
 	}
 	
+	/**
+	 * 批量保存，更新，删除操作(适用一个SQL)
+	 * @param sql
+	 * @return
+	 */
 	public String updateList(String sql){
 		String json = "";
 		Connection con = null;
 		PreparedStatement ps = null;
+		int resultCount = 0;
 		try {
 			con = DB.getInstance().getConn();
 			con.setAutoCommit(false);
@@ -133,12 +171,12 @@ public class SUtil{
 					ps.setString(j+1, _condition.get(j));
 				ps.addBatch();
 				if(i % 100 == 0 || i == conditionList.size() - 1){
-					ps.executeBatch();
+					resultCount += ps.executeBatch().length;
 					ps.clearBatch();
 				}
 			}
 			con.commit();
-			json = JUtil.getCommJson(true);
+			json = JUtil.getJson("批量更新完成!影响数据数："+resultCount, Const.success, true);
 		} catch (Exception e) {
 			try {
 				con.rollback();
@@ -146,6 +184,7 @@ public class SUtil{
 				e1.printStackTrace();
 			}
 			e.printStackTrace();
+			json = JUtil.getJson("批量更新异常!原因: "+e.getMessage(), Const.fail, false);
 		} finally{
 			DB.getInstance().close(con, ps);
 			conditionList.clear();

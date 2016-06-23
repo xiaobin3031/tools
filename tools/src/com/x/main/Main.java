@@ -81,7 +81,8 @@ public class Main extends HttpServlet{
 						String sProjectId = req.getParameter("projectId");
 						String[] aChildrens = req.getParameterValues("childrens[]");
 						json = p.saveProject(username.toString(),sProjectId,sProjectName,aChildrens);
-					}
+					}else if("getProjectParent".equals(subAction))
+						json = p.getProjectParent(username.toString());
 				}else if("questions".equals(action)){
 					Question q = new Question();
 					String parentId = req.getParameter("parentId");
@@ -105,6 +106,12 @@ public class Main extends HttpServlet{
 						String questionid = req.getParameter("questionid");
 						String notes = req.getParameter("notes");
 						json = q.saveQuesNotes(username.toString(), questionid, notes);
+					}else if("transfer".equals(subAction)){
+						if(Util.isNotNull(parentId)){
+							String[] questionids = req.getParameterValues("questionids[]");
+							if(!Util.isNotNull(childrenId)) childrenId = "0";
+							json = q.transfer(username.toString(), parentId, childrenId, questionids);
+						}
 					}
 				}else if("solution".equals(action)){
 					Solution a = new Solution();

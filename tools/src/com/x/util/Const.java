@@ -7,6 +7,8 @@ public class Const{
 	public final static int notLogin = -101;
 	
 	
+	public final static int success = 0;				//通用的操作成功标记
+	public final static int fail = -1;					//通用的操作失败标记
 	
 	
 	

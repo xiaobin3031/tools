@@ -7,6 +7,7 @@ import java.sql.SQLException;
 
 import com.x.db.DB;
 import com.x.util.JUtil;
+import com.x.util.SUtil;
 import com.x.util.Util;
 import com.x.util.XList;
 
@@ -123,6 +124,15 @@ public class Project {
 			DB.getInstance().close(con, ps,rs);
 		}
 		return json;
+	}
+	
+	public String getProjectParent(String username){
+		StringBuffer sb = new StringBuffer();
+		sb.append("select id,name from PROJECT_PARENT where ADDWHO = ? and ACTIVE_FLAG = 'Y'");
+		SUtil sUtil = new SUtil(false);
+		sUtil.add(username);
+		sUtil.setColumns("id,name");
+		return JUtil.getDatagrid(sUtil.getTotalCount(), sUtil.fetch(sb.toString(), 0).toString());
 	}
 	
 	

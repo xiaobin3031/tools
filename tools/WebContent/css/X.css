@@ -29,9 +29,11 @@
 	-moz-border-radius:15px;
 	-webkit-border-radius:15px;
 }
-.err_notes{
-	background-color: #FF0033;
+.themeChangeCss{
+	position:absolute;
+	bottom:5px;
+	right:5px;
 }
-.warn_notes{
-	background-color: #OOCCFF;
+.themeChangeCss span{
+	vertical-align: bottom;
 }

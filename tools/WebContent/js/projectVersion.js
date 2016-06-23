@@ -4,7 +4,7 @@
 var edit_index = undefined,rowIndex = undefined,rowSelectedData = undefined,
 solutionId = 0,panelId = undefined,isAdd=false,isEdit=false,
 question_cache = new Map(),solution_cache = new Map()
-,ques_selectedTitle = undefined;
+,ques_selectedTitle = undefined,share_selectedTitle = undefined;
 $(function(){
 	$('#questions').datagrid().datagrid('getPager').pagination({
 		total:0,
@@ -272,16 +272,33 @@ function shareData(){
 			$('#friends').datagrid('loadData',json.rows);
 		}
 	});
+	if('转移' == share_selectedTitle) shareTabSelect(share_selectedTitle);
+}
+function shareTabSelect(title,index){
+	share_selectedTitle = title;
+	if(share_selectedTitle == '转移' && $('#projectParent').tree('getRoot') == null){
+		var oData = {};
+		oData.action = 'project';
+		oData.subAction = 'getProject';
+		X.ajax(oData,function(data){
+			if(data) {
+				var json = X.toJson(data);
+				$('#projectParent').tree('loadData',json);
+			}
+		});
+	}
 }
 function shareQues(){
-	var friends_cked = $('#friends').datagrid('getChecked');
 	var ques_cked = $('#questions').datagrid('getChecked');
-	if(friends_cked != null && friends_cked.length > 0 && ques_cked != null && ques_cked.length > 0){
-		var friends = new Array(),questions = new Array();
+	if(ques_cked == null || ques_cked.length <= 0) return;
+	var friends_cked = $('#friends').datagrid('getChecked');
+	var questions = new Array();
+	for(var i=0;i<ques_cked.length;i++)
+		questions.push(ques_cked[i].id);
+	if(friends_cked != null && friends_cked.length > 0){
+		var friends = new Array();
 		for(var i=0;i<friends_cked.length;i++)
 			friends.push(friends_cked[i].userid);
-		for(var i=0;i<ques_cked.length;i++)
-			questions.push(ques_cked[i].id);
 		var oData = {};
 		oData.action = 'share';
 		oData.subAction = 'saveShare';
@@ -294,12 +311,24 @@ function shareQues(){
 			}
 		});
 	}
+	if($('#projectParent').tree('getSelected') != null){
+		var oData = getTreeParentChildren('projectParent');
+		oData.action = 'questions';
+		oData.subAction = 'transfer';
+		oData.questionids = questions;
+		X.ajax(oData,function(data){
+			var json = X.toJson(data);
+			X.dialog(json.resultMsg, json.code);
+			getQuestions(true);
+		});
+	}
 }
 function cancelShareQues(){
-	$('#friends').datagrid('uncheckAll');
+	$('#friends').datagrid('loadData',[]);
 	$('#quesLayout').layout('collapse','west');
 	$('#questions').datagrid('hideColumn','ques_ck');
 	$('#questions').datagrid('uncheckAll');
+	$('#projectParent').tree('loadData',[]);
 }
 function editQuesNote(){
 	if($('#questions').datagrid('getSelected') != null && $('#notes_span').length > 0){
@@ -400,7 +429,7 @@ function saveData(){
 		});
 	}
 }
-//保存时，库存属性不能保存成功
+
 function removeData(){
 	if($('#questions').datagrid('getPager').pagination('options').loading) return;
 	if(confirm("sure to remove this data?")){
@@ -452,13 +481,14 @@ function questionDblRow(rowIndex,rowData){
 //questions模块结束
 
 
-function getTreeParentChildren(){
-	if(!$('#projectNames').tree('getSelected')) return null;
-	var selected = $('#projectNames').tree('getSelected');
-	$('#projectNames').tree('expand',selected.target);
+function getTreeParentChildren(id){
+	if(id == undefined) id = 'projectNames';
+	if(!$('#'+id).tree('getSelected')) return null;
+	var selected = $('#'+id).tree('getSelected');
+	$('#'+id).tree('expand',selected.target);
 	var oData = {};
-	if($('#projectNames').tree('isLeaf',selected.target)){
-		var parent = $('#projectNames').tree('getParent',selected.target);
+	if($('#'+id).tree('isLeaf',selected.target)){
+		var parent = $('#'+id).tree('getParent',selected.target);
 		if(parent){
 			oData.parentId = parent.id;
 			oData.parentText = parent.text;

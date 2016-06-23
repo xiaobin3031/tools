@@ -9,6 +9,33 @@ $(function(){
 			if(json.success) X.cookie.set({username:json.resultMsg});
 		});
 	}
+	
+	//加载更换主题
+	if($('#themeChange').length > 0){
+		if($('#mainCss').length > 0){
+			$('#themeChange').combobox({
+				valueField:'value',
+				textField:'text',
+				onSelect:function(record){
+					if(X.isEmpty(record.value)) $('#mainCss').attr('href','css/earyui.css');
+					else $('#mainCss').attr('href','css/'+record.value+'.css');
+				},
+				data:[
+				  	{value:'easyui',text:'easyui',selected:true},
+					{value:'metro-blue',text:'metro-blue'},
+					{value:'metro-gray',text:'metro-gray'},
+					{value:'metro-green',text:'metro-green'},
+					{value:'metro-orange',text:'metro-orange'},
+					{value:'metro-red',text:'metro-red'},
+					{value:'ui-sunny',text:'ui-sunny'},
+					{value:'ui-cupertino',text:'ui-cupertino'},
+					{value:'ui-dark-hive',text:'ui-dark-hive'},
+					{value:'ui-pepper-grinder',text:'ui-pepper-grinder'}
+				]
+			});
+		}else
+			$('#themeChange').parent().remove();
+	}
 });
 var X={
 cons:{url:'action.php',pageSize:50,alertCode:-200,notLogin:-101},
@@ -176,13 +203,7 @@ loadXMLString:function(dname){
     return xmlDoc;
 },
 dialog:function(v,c){
-	if($('#globalNotes').length > 0 && !X.isEmpty(v)){
-		if(c >= 0)
-			//warn
-			$('#globalNotes').css('background-color','#00CCFF');
-		else
-			//error
-			$('#globalNotes').css('background-color','#FF0033');
+	if($('#globalNotes').length > 0 && !X.isEmpty(v) && c != undefined){
 		$('#globalNotes span').text(v);
 		//动画展示
 		$('#globalNotes').animate({bottom:'0px'},500);
@@ -192,11 +213,18 @@ dialog:function(v,c){
 			window.clearTimeout(globalNotes);
 			globalNotes = undefined;
 		}
-		globalNotes = window.setTimeout(function(){
-			$('#globalNotes').animate({bottom:'-30px'},'slow');
-			window.clearTimeout(globalNotes);
-			globalNotes = undefined;
-		},3*1000);
+		if(c >= 0){
+			//warn，对警告信息，设置消息框隐藏功能
+			$('#globalNotes').css('background-color','#00CCFF');
+			globalNotes = window.setTimeout(function(){
+				$('#globalNotes').animate({bottom:'-30px'},'slow');
+				window.clearTimeout(globalNotes);
+				globalNotes = undefined;
+			},3*1000+500);
+		}else{
+			//error，对错误信息，设置消息框不隐藏
+			$('#globalNotes').css('background-color','#FF0033');
+		}
 	}
 },
 loginDialog:function(id){

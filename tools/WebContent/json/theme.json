@@ -1,0 +1,12 @@
+[
+	{value:'easyui',text:'easyui'},
+	{value:'metro-blue',text:'metro-blue'},
+	{value:'metro-gray',text:'metro-gray'},
+	{value:'metro-green',text:'metro-green'},
+	{value:'metro-orange',text:'metro-orange'},
+	{value:'metro-red',text:'metro-red'},
+	{value:'ui-sunny',text:'ui-sunny'},
+	{value:'ui-cupertino',text:'ui-cupertino'},
+	{value:'ui-dark-hive',text:'ui-dark-hive'},
+	{value:'ui-pepper-grinder',text:'ui-pepper-grinder'}
+]
