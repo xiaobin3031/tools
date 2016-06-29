@@ -1,4 +1,5 @@
-var usernametext = 'loginname',passtext = 'pass',globalNotes = undefined,notesFlag = false;
+var usernametext = 'loginname',passtext = 'pass',globalNotes = undefined,notesFlag = false,
+themeChangeIsLoaded = false;
 $(function(){
 	if(X.isEmpty(X.cookie.get('username'))){
 		var oData = {};
@@ -6,7 +7,12 @@ $(function(){
 		oData.action = 'isLogin';
 		X.ajax(oData,function(data){
 			var json = X.toJson(data);
-			if(json.success) X.cookie.set({username:json.resultMsg});
+			if(json.success) {
+				X.cookie.set({username:json.resultMsg,theme:json.theme});
+				//判断下拉框是否已经加载完毕
+				if(themeChangeIsLoaded)
+					$('#themeChange').combobox('select',json.theme);
+			}
 		});
 	}
 	
@@ -14,24 +20,18 @@ $(function(){
 	if($('#themeChange').length > 0){
 		if($('#mainCss').length > 0){
 			$('#themeChange').combobox({
+				url:'json/theme.json',
 				valueField:'value',
 				textField:'text',
+				onLoadSuccess:function(){
+					themeChangeIsLoaded = true;
+					var theme = X.isEmpty(X.cookie.get('theme')) ? 'easyui' : X.cookie.get('theme');
+					$('#themeChange').combobox('select',theme);
+				},
 				onSelect:function(record){
 					if(X.isEmpty(record.value)) $('#mainCss').attr('href','css/earyui.css');
 					else $('#mainCss').attr('href','css/'+record.value+'.css');
-				},
-				data:[
-				  	{value:'easyui',text:'easyui',selected:true},
-					{value:'metro-blue',text:'metro-blue'},
-					{value:'metro-gray',text:'metro-gray'},
-					{value:'metro-green',text:'metro-green'},
-					{value:'metro-orange',text:'metro-orange'},
-					{value:'metro-red',text:'metro-red'},
-					{value:'ui-sunny',text:'ui-sunny'},
-					{value:'ui-cupertino',text:'ui-cupertino'},
-					{value:'ui-dark-hive',text:'ui-dark-hive'},
-					{value:'ui-pepper-grinder',text:'ui-pepper-grinder'}
-				]
+				}
 			});
 		}else
 			$('#themeChange').parent().remove();
@@ -39,6 +39,7 @@ $(function(){
 });
 var X={
 cons:{url:'action.php',pageSize:50,alertCode:-200,notLogin:-101},
+que_sts:{'已创建':'00','已解决':'50'},
 init:function(){
     X.ajax({action:"userOrAdmin"},function(data){
            var json = X.toJson(data);
@@ -204,7 +205,14 @@ loadXMLString:function(dname){
 },
 dialog:function(v,c){
 	if($('#globalNotes').length > 0 && !X.isEmpty(v) && c != undefined){
+		$('#globalNotes > div').css({width:'','margin-left':''});
+		
 		$('#globalNotes span').text(v);
+		var parentWidth = parseInt($('#globalNotes').css('width').replace('px',''));
+		var spanWidth = parseInt($('#globalNotes span').css('width').replace('px',''));
+		spanWidth += 15;
+		var leftWidth = (parentWidth - spanWidth)/2;
+		$('#globalNotes > div').css({width:spanWidth+'px','margin-left':leftWidth+'px'});
 		//动画展示
 		$('#globalNotes').animate({bottom:'0px'},500);
 		if(globalNotes != undefined){
@@ -215,7 +223,7 @@ dialog:function(v,c){
 		}
 		if(c >= 0){
 			//warn，对警告信息，设置消息框隐藏功能
-			$('#globalNotes').css('background-color','#00CCFF');
+			$('#globalNotes > div').css('background-color','#00CCFF');
 			globalNotes = window.setTimeout(function(){
 				$('#globalNotes').animate({bottom:'-30px'},'slow');
 				window.clearTimeout(globalNotes);
@@ -223,7 +231,7 @@ dialog:function(v,c){
 			},3*1000+500);
 		}else{
 			//error，对错误信息，设置消息框不隐藏
-			$('#globalNotes').css('background-color','#FF0033');
+			$('#globalNotes > div').css('background-color','#FF0033');
 		}
 	}
 },
@@ -317,6 +325,12 @@ removeRepStr:function(v){
 },
 toEntities:function(v){
 	return v.replace(/'/g,'&#39;').replace(/</g,'&#60;').replace(/>/g,'&#62;');
+},
+rhtmlC:function(v){
+	if(X.isEmpty(v)) return '';
+	v = v.replace(/"/g,'&#34;');
+	v = v.replace(/'/g,'&#39;');
+	return v;
 }
 }
 X.html={
@@ -515,7 +529,7 @@ function login(){
 	X.ajax(oData,function(data){
 		var json = X.toJson(data);
 		if(json.success){
-			X.cookie.set({username:oData.loginname});
+			X.cookie.set({username:oData.loginname,theme:json.theme});
 			location.reload(true);
 		}else{
 			X.dialog(json.resultMsg,json.code);

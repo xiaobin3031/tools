@@ -13,9 +13,7 @@
 <script type="text/javascript">
 var a = true;
 function test(){
-// 	if(a) $('#mainCss').attr('href','css/easyui.css');
-// 	else $('#mainCss').attr('href','css/ui-sunny.css');
-// 	a = !a;
+	alert('theme := '+X.cookie.get('theme'));
 }
 </script>
 <style>
@@ -24,16 +22,25 @@ function test(){
 </head>
 <body class="easyui-layout">
 	<div data-options="region:'north',border:false"
-		style="height: 60px; background: #B3DFDA;">north
-		region
-		<div id="globalNotes" class="notes_body">
-			<span class="notes">操作结果</span>
+		style="height: 60px; background: #B3DFDA;">
+		<div style="width:100%;position: absolute;bottom:0px;height:30px;overflow: hidden;">
+			<div id="globalNotes" class="notes_body">
+				<div style="border-radius:15px;height:100%;"><span class="notes">操作结果</span></div>
+			</div>
+			<div class="themeChangeCss">
+				<span>主题更换：</span>
+				<input id="themeChange" class="easyui-combobox">
+				<a href="javascript:void(0);" class="easyui-linkbutton" onclick="saveTheme();" data-options="iconCls:'icon-save'">设为默认</a>
+			</div>
 		</div>
 <!-- 		<input type="button" onclick="test();" value="Test"/> -->
-		<div class="themeChangeCss"><span>主题更换：</span><input id="themeChange" class="easyui-combobox"></div>
+		<div class="navigationCss">
+			<span>欢迎: <a href="user.html"><span id="usertext"></span></a></span>
+		</div>
+		
 	</div>
 	<div
-		data-options="region:'west',split:true,title:'ProjectName',tools:'#mainWestBtn',collapsible:false"
+		data-options="region:'west',split:false,title:'ProjectName',tools:'#mainWestBtn',collapsible:false"
 		style="width: 10%; padding: 10px;">
 		<ul id="projectNames" class="easyui-tree" 
 			data-options="animate:true,lines:true,onSelect:getQuestions,onlyLeafCheck:true,
@@ -50,12 +57,12 @@ function test(){
 	<div data-options="region:'east',border:false,collapsed:true,title:'East'" style="width:100px;padding:10px;"></div>
 	<div data-options="region:'center',border:false">
 		<div class="easyui-layout" data-options="fit:true">
-			<div data-options="region:'west',split:true,border:false" style="width: 60%">
+			<div data-options="region:'west',border:false" style="width: 60%">
 				<div class="easyui-panel" style="width:100%;height:80%;">
 					<div id="quesLayout" class="easyui-layout" data-options="fit:true">
 						<div data-options="title:'All Your Friends',region:'west',
 							collapsed:true,collapsible:false,tools:'#quesWestBtn',disable:true" style="width:20%">
-							<div id="shareTabs" class="easyui-tabs" style="height:100%;" data-options="border:false,onSelect:shareTabSelect">
+							<div id="shareTabs" class="easyui-tabs" style="height:100%;" data-options="plain:true,border:false,onSelect:shareTabSelect">
 								<div title="好友">
 									<table id="friends" class="easyui-datagrid" style="width:100%" data-options="
 										autoRowHeight:true,
@@ -80,7 +87,7 @@ function test(){
 							</div>
 						</div>
 						<div data-options="region:'center',border:false">
-							<div id="quesTabs" class="easyui-tabs" style="height:100%;" data-options="border:false,onSelect:quesTabSelect">
+							<div id="quesTabs" class="easyui-tabs" style="height:100%;" data-options="border:false,onSelect:quesTabSelect,tools:'#quesTabTools'">
 								<div title="全部">
 									<table id="questions" class="easyui-datagrid" style="width:100%" data-options="
 										rownumbers:true, 
@@ -133,35 +140,11 @@ function test(){
 					</div>
 				</div>
 				<div id="quesNotePanel" class="easyui-panel" data-options="title:'notes',border:false,tools:'#quesNoteBtn'" style="height:20%;padding:10px;">
-					<span id="notes_span"></span>
 				</div>
 			</div>
 			<div data-options="region:'center',border:true">
 				<div class="easyui-layout" data-options="fit:true">
-					<div data-options="region:'north'" style="height:40px;">
-						
-						<div style="width:100%;height:30px;margin-top:6px;overflow: hidden;position:fixed;z-index:100;">
-							<span style="width:5%;margin-left:5px;"></span>
-							<input class="easyui-searchbox" data-options="prompt:'Just Input Something'">
-							<span >发布人:</span>
-							<select id="releaser" class="easyui-combobox" style="width:10%;"
-								data-options="textField:'text',valueField:'release'">
-						  	</select>
-						  	<a href="javascript:void(0)" class="easyui-linkbutton" 
-						  		onclick="expandAll();" data-options="text:'全部展开'"></a>
-						  	<a href="javascript:void(0)" class="easyui-linkbutton" 
-						  		onclick="collapseAll();" data-options="text:'全部折叠'"></a>
-							<a href="javascript:void(0)" class="easyui-linkbutton" 
-								onclick="addSolution();" data-options="iconCls:'icon-add',plain:true"></a>
-							<a href="javascript:void(0)" class="easyui-linkbutton" 
-								onclick="saveSolution();" data-options="iconCls:'icon-save',plain:true"></a>
-							<a href="javascript:void(0)" class="easyui-linkbutton" 
-								onclick="removeSolution();" data-options="iconCls:'icon-cancel',plain:true"></a>
-							<a href="javascript:void(0)" class="easyui-linkbutton" 
-								onclick="cancelSolution();" data-options="iconCls:'icon-redo',plain:true"></a>
-						</div>
-					</div>
-					<div id="solution" data-options="region:'center',border:false" style="overflow-x:hidden;">
+					<div id="solution" data-options="region:'center',border:false,title:'solutions',tools:'#solutionTools'" style="overflow-x:hidden;">
 					</div>
 				</div>
 			</div>
@@ -178,7 +161,12 @@ function test(){
 	<div id="sub1WestBtn">
 		<a href="javascript:void(0)" class="icon-add" onclick="tabAdd();"></a>
 	</div>
-	<div id="quesButtons">
+	<div id="quesNoteBtn">
+		<a href="javascript:void(0)" class="easyui-linkbutton" onclick="editQuesNote();" data-options="iconCls:'icon-edit',plain:true"></a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" onclick="saveQuesNote();" data-options="iconCls:'icon-save',plain:true"></a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" onclick="cancelQuesNote();" data-options="iconCls:'icon-cancel',plain:true"></a>
+	</div>
+	<div id="quesTabTools">
 		<table style="border-spacing:0">
 			<tr>
 				<td>
@@ -190,14 +178,31 @@ function test(){
 					<a href="javascript:void(0)" onclick="saveData();" class="easyui-linkbutton" data-options="iconCls:'icon-save',plain:true"></a>
 					<a href="javascript:void(0)" onclick="removeData();" class="easyui-linkbutton" data-options="iconCls:'icon-cancel',plain:true"></a>
 					<a href="javascript:void(0)" onclick="cancelData();" class="easyui-linkbutton" data-options="iconCls:'icon-redo',plain:true"></a>
+					<a id="quesAttachment" href="javascript:void(0);" class="easyui-linkbutton" 
+						onclick="attachment();" data-options="iconCls:'icon-attachment',plain:true">0</a>
 				</td>
 			</tr>
 		</table>
 	</div>
-	<div id="quesNoteBtn">
-		<a href="javascript:void(0)" class="easyui-linkbutton" onclick="editQuesNote();" data-options="iconCls:'icon-edit',plain:true"></a>
-		<a href="javascript:void(0)" class="easyui-linkbutton" onclick="saveQuesNote();" data-options="iconCls:'icon-save',plain:true"></a>
-		<a href="javascript:void(0)" class="easyui-linkbutton" onclick="cancelQuesNote();" data-options="iconCls:'icon-cancel',plain:true"></a>
+	<div id="solutionTools" style="width:100%;height:30px;margin-top:6px;overflow: hidden;position:fixed;z-index:100;">
+		<span style="width:5%;margin-left:5px;"></span>
+		<input class="easyui-searchbox" data-options="prompt:'Just Input Something'">
+		<!-- <span >发布人:</span>
+		<select id="releaser" class="easyui-combobox" style="width:10%;"
+			data-options="textField:'text',valueField:'release'">
+	  	</select>-->
+	  	<a href="javascript:void(0)" class="easyui-linkbutton" 
+	  		onclick="expandAll();" data-options="text:'全部展开'"></a>
+	  	<a href="javascript:void(0)" class="easyui-linkbutton" 
+	  		onclick="collapseAll();" data-options="text:'全部折叠'"></a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" 
+			onclick="addSolution();" data-options="iconCls:'icon-add',plain:true"></a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" 
+			onclick="saveSolution();" data-options="iconCls:'icon-save',plain:true"></a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" 
+			onclick="removeSolution();" data-options="iconCls:'icon-cancel',plain:true"></a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" 
+			onclick="cancelSolution();" data-options="iconCls:'icon-redo',plain:true"></a>
 	</div>
 	<div id="w" class="easyui-window" title="AddProject" data-options="iconCls:'icon-save',closed:true,modal:true
 		,maximizable:false,minimizable:false,collapsible:false" 
@@ -229,6 +234,29 @@ function test(){
 			<a href="javascript:void(0);" onclick="saveProject();" class="easyui-linkbutton" data-options="iconCls:'icon-save'">Save</a>
 			<a href="javascript:void(0);" onclick="cancelProject();" class="easyui-linkbutton" data-options="iconCls:'icon-redo'">Cancel</a>
 		</div>
+	</div>
+	<div id="attachmentWin" class="easyui-window" data-options="title:'附件上传和下载',closed:true,modal:true,
+		collapsible:false,minimizable:false,maximizable:false,resizable:false,
+		tools:[{
+			iconCls:'icon-add',
+			handler:function(){
+				addQuesFile();
+			}
+		},
+		{
+			iconCls:'icon-save',
+			handler:function(){
+				uploadFile();
+			}
+		}]" style="width:40%;height:50%;">
+		<div style="width:100%;height:10%;">
+			<form id="quesAttach" enctype="multipart/form-data">
+				<div>
+					<a id="file1" data-options="buttonText:'Choose File',buttonAlign:'right'" class="easyui-filebox" style="width:100%;">选择文件</a>
+				</div>
+			</form>
+		</div>
+		<div class="easyui-panel" style="width:100%;height:90%;"></div>
 	</div>
 </body>
 </html>

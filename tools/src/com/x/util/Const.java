@@ -13,4 +13,5 @@ public class Const{
 	
 	
 	public final static String HOSTER = "xiaobin";
+	public final static String SUPERROLE = "admin";
 }

@@ -1,5 +1,6 @@
 package com.x.projectVersion;
 
+import com.x.util.Const;
 import com.x.util.JUtil;
 import com.x.util.SUtil;
 import com.x.util.Util;
@@ -49,11 +50,8 @@ public class Solution {
 	}
 	
 	public String removeSolution(String id,String username){
-		String json = JUtil.getCommJson(false);
-		/*SUtil sUtil = new SUtil();
-		sUtil.add(id,username);
-		json = sUtil.update("delete from SOLUTIONS where ID = ? and ADDWHO = ?");*/
-		json = JUtil.getJson("暂不开放删除功能,请与管理员联系", -1, false);
-		return json;
+		SUtil sUtil = new SUtil();
+		sUtil.add(id,username,Const.SUPERROLE);
+		return sUtil.update("delete a from SOLUTIONS a,USER b where a.ADDWHO = b.NAME and a.ID = ? and a.ADDWHO = ? and b.role = ?");
 	}
 }

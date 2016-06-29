@@ -23,7 +23,8 @@
 	padding:0 10px;
 	bottom:-30px;
 	position:absolute;
-	left:45%;
+	width:80%;
+/* 	left:30%; */
 	text-align:center;
 	border-radius:15px;
 	-moz-border-radius:15px;
@@ -36,4 +37,9 @@
 }
 .themeChangeCss span{
 	vertical-align: bottom;
+}
+.navigationCss{
+	position:absolute;
+	top:5px;
+	right:5px;
 }

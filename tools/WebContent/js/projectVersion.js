@@ -12,7 +12,6 @@ $(function(){
 		displayMsg:'{total} items all',
 		height:'50px',
 		overflow:'hidden',
-		buttons:$('#quesButtons'),
 		showRefresh:false,
 		onSelectPage:function(pageNumber,pageSize){
 			getQuestions();
@@ -41,7 +40,22 @@ $(function(){
 	});
 	
 	getProject();
+	$('#usertext').text(X.cookie.get('username'));
+	
 });
+function saveTheme(){
+	var theme = $('#themeChange').combobox('getValue');
+	if(theme != "" && theme != X.cookie.get('theme')){
+		var oData = {action:'login',subAction:'updateTheme'};
+		oData.theme = theme;
+		X.ajax(oData,function(data){
+			var json = X.toJson(data);
+			X.dialog(json.resultMsg, json.code);
+			if(json.success)
+				X.cookie.set({theme:theme});
+		});
+	}
+}
 function collapsePanel(){
 	if(panelId != undefined){
 		$('#'+panelId).panel('collapse',true);
@@ -208,6 +222,12 @@ function getQuestions(isRequired,searchTxt){
 			question_cache.m('p'+selected.parentId,json.rows);
 	});
 }
+function attachment(){
+	$('#attachmentWin').window('open');
+}
+function uploadFile(){
+	alert($('#quesFile').filebox('getValue'));
+}
 function getShareQuestions(isRequired,searchTxt){
 	$('#solution').empty();
 	var q = $('#shareQuestions');
@@ -288,6 +308,18 @@ function shareTabSelect(title,index){
 		});
 	}
 }
+function addQuesFile(){
+	var len = $('#quesAttach > div').find('a').size();
+	len /= 2;
+	for(var i=1;i<=len;i++)
+		if(X.isEmpty($('#file'+i).filebox('getValue'))) return;
+	len ++;
+	$('#quesAttach > div').append('<a id="file' + len +'" href="javascript:void(0);" style="width:100%;">选择文件</a>');
+	$('#file'+len).filebox({
+		buttonText:'Choose File',
+		buttonAlign:'right'
+	});
+}
 function shareQues(){
 	var ques_cked = $('#questions').datagrid('getChecked');
 	if(ques_cked == null || ques_cked.length <= 0) return;
@@ -331,7 +363,7 @@ function cancelShareQues(){
 	$('#projectParent').tree('loadData',[]);
 }
 function editQuesNote(){
-	if($('#questions').datagrid('getSelected') != null && $('#notes_span').length > 0){
+	if($('#questions').datagrid('getSelected') != null && $('#ques_input').length <= 0){
 		$('#quesNotePanel').empty();
 		$('#quesNotePanel').append('<input id="ques_input">');
 		var options = {};
@@ -339,7 +371,7 @@ function editQuesNote(){
 		options.width = '100%';
 		options.height = '100%';
 		$('#ques_input').textbox(options);
-		$('#ques_input').textbox('setValue',$('#questions').datagrid('getSelected').notes);
+		$('#ques_input').textbox('setValue',$('#questions').datagrid('getSelected').notes.replace('<br>','\n'));
 		$('#ques_input').next('span').find('textarea').focus();
 	}
 }
@@ -349,22 +381,21 @@ function saveQuesNote(){
 		oData.action = 'questions';
 		oData.subAction = 'saveQuesNotes';
 		oData.questionid = $('#questions').datagrid('getSelected').id;
-		oData.notes = $('#ques_input').textbox('getValue');
+		oData.notes = X.rhtmlC($('#ques_input').textbox('getValue')).replace(/\n/g,'<br>');
 		X.ajax(oData,function(data){
 			var json = X.toJson(data);
+			X.dialog(json.resultMsg, json.code);
 			if(json.success){
 				$('#questions').datagrid('getSelected').notes = oData.notes;
 				cancelQuesNote();
-			}else
-				X.dialog(json.resultMsg, json.code);
+			}
 		});
 	}
 }
 function cancelQuesNote(){
 	if($('#questions').datagrid('getSelected') != null && $('#ques_input').length > 0){
 		$('#quesNotePanel').empty();
-		$('#quesNotePanel').append('<span id="notes_span"></span>');
-		$('#notes_span').text($('#questions').datagrid('getSelected').notes);
+		$('#quesNotePanel').panel({content:$('#questions').datagrid('getSelected').notes});
 	}
 }
 function addData(){
@@ -409,8 +440,8 @@ function saveData(){
 		for(var i =0;i<changedRows.length;i++){
 			if(X.isEmpty(changedRows[i].title)) continue;
 			id.push(changedRows[i].id ? changedRows[i].id : '');
-			status.push(changedRows[i].status);
-			question.push(changedRows[i].title);
+			status.push(X.que_sts[changedRows[i].status] == undefined ? changedRows[i].status : X.que_sts[changedRows[i].status]);
+			question.push(X.rhtmlC(changedRows[i].title));
 		}
 		if(question.length == 0) return;
 		oData.id = id;
@@ -418,14 +449,14 @@ function saveData(){
 		oData.question = question;
 		X.ajax(oData, function(data){
 			var json = X.toJson(data);
+			X.dialog(json.resultMsg,json.code);
 			if(json.success){
 				q.datagrid('acceptChanges');
 				getQuestions(true);
 				edit_index = undefined;
 				isAdd = false;
 				isEdit = false;
-			}else
-				X.dialog(json.resultMsg);
+			}
 		});
 	}
 }
@@ -443,10 +474,9 @@ function removeData(){
 				oData.id = q.datagrid('getSelected').id;
 				X.ajax(oData, function(data){
 					var json = X.toJson(data);
+					X.dialog(json.resultMsg,json.code);
 					if(json.success)
 						q.datagrid('deleteRow',rowIndex);
-					else
-						X.dialog(json.resultMsg,json.code);
 					$('#questions').datagrid('getPager').pagination('loaded');
 				});
 			}else{
@@ -460,15 +490,13 @@ function onSelectRow(index,data){
 	rowIndex = index;rowSelectedData = data;
 	if(isEdit) $('#questions').datagrid('endEdit',edit_index);
 	if(data.id == undefined) return;
-	if($('#notes_span').length <= 0){
+	if($('#notes_span').length <= 0)
 		$('#quesNotePanel').empty();
-		$('#quesNotePanel').append('<span id="notes_span"></span>');
-	}
-	$('#notes_span').text(data.notes);
+	$('#quesNotePanel').panel({content:data.notes});
 	getSolution(data.id);
 }
 function questionDblRow(rowIndex,rowData){
-	if(isAdd) return;
+	if(isAdd || rowData.status.substring(0,3) == '已解决') return;
 	isEdit = true;
 	$('#questions').datagrid('beginEdit',rowIndex);
 	if(edit_index != undefined) $('#questions').datagrid('endEdit',edit_index);
@@ -521,12 +549,12 @@ function getSolution(id,isRequired){
 		oData.subAction = 'getSolutions';
 		oData.questionId = id;
 		X.ajax(oData,function(data){
-			var json = X.toJson(data.replace(/[\r\n]+/g,' '));
+			var json = X.toJson(data.replace(/[\n]+/g,'<br />'));
+			X.dialog(json.resultMsg,json.code);
 			if(json.success){
 				setSolutions(json.data);
 				solution_cache.m(id,json.data);
-			}else
-				X.dialog(json.resultMsg);
+			}
 		});
 	}
 	
@@ -535,7 +563,7 @@ function setSolutions(json){
 	for(var i=0;i<json.length;i++){
 		$('#solution').append('<div id="'+json[i].id+'" class="easyui-panel" style="width:100%;padding:30px 70px 20px 70px"></div>');
 		var options = {width:'100%',headerCls:'pointer',collapsed:true,iconCls:'icon-edit'};
-		options.title = json[i].KEYWORD + '               --by' + json[i].RELEASER;
+		options.title = json[i].KEYWORD + '<span style="padding-left:20px;">--by<span style="padding-left:10px;">' + json[i].RELEASER + '</span></span>';
 		if(i == 0) options.collapsed = false;
 		options.content = json[i].SOLUTION;
 		options.id = json[i].ID;
@@ -593,11 +621,11 @@ function removeSolution(){
 		oData.id = panelId;
 		X.ajax(oData, function(data){
 			var json = X.toJson(data);
+			X.dialog(json.resultMsg,json.code);
 			if(json.success){
 				$('#'+panelId).panel('destroy');
 				panelId = undefined;
-			}else
-				X.dialog(json.resultMsg);
+			}
 		});
 	}
 }
@@ -607,8 +635,8 @@ function saveSolution(){
 	for(var i=1;i<= solutionId;i++){
 		//如果该panel已被删除,则continue
 		if($('#ta'+i).length <= 0) continue;
-		solution.push($('#ta'+i).textbox('getValue'));
-		keyword.push($('#keyword'+i).textbox('getValue'));
+		solution.push(X.rhtmlC($('#ta'+i).textbox('getValue')));
+		keyword.push(X.rhtmlC($('#keyword'+i).textbox('getValue')));
 		status.push('');
 	}
 	//如果所有新增的panel都被删除,则不请求服务器

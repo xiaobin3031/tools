@@ -143,7 +143,7 @@ public class SUtil{
 				e1.printStackTrace();
 			}
 			e.printStackTrace();
-			json = JUtil.getJson("操作异常,原因: "+e.getMessage(), Const.fail, false);
+			json = JUtil.getJson("操作异常,原因: "+e.getMessage().replaceAll("near.*", ""), Const.fail, false);
 		} finally{
 			DB.getInstance().close(con, ps);
 			condition.clear();
@@ -184,7 +184,7 @@ public class SUtil{
 				e1.printStackTrace();
 			}
 			e.printStackTrace();
-			json = JUtil.getJson("批量更新异常!原因: "+e.getMessage(), Const.fail, false);
+			json = JUtil.getJson("批量更新异常!原因: "+e.getMessage().replaceAll("near.*", ""), Const.fail, false);
 		} finally{
 			DB.getInstance().close(con, ps);
 			conditionList.clear();

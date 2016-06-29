@@ -29,7 +29,7 @@ public class Question {
 		StringBuffer sb = new StringBuffer();
 		SUtil sUtil = new SUtil();
 		sb.append("select")
-		.append(" q.id,q.title,bc.name as status,ifnull(q.notes,'') as notes")
+		.append(" q.id,q.title,bc.name as status,replace(ifnull(q.notes,''),'\n','<br>') as notes")  
 		.append(" from QUESTIONS q left join BASCODES bc on q.STATUS = bc.code and bc.codeid = 'QUE_STS'")
 		.append(" where q.ACTIVE_FLAG = 'Y'")
 		.append(" and q.ADDWHO = ? and q.PARENT_ID = ?");
@@ -90,12 +90,9 @@ public class Question {
 	 * @return
 	 */
 	public String removeQuestion(String username,String id){
-		String json = "";
-		/*SUtil sUtil = new SUtil();
-		sUtil.add(id,username);
-		json = sUtil.update("delete from QUESTIONS where id = ? and ADDWHO = ?");*/
-		json = JUtil.getJson("暂不开放删除功能,请与管理员联系", Const.alertCode, false);
-		return json;
+		SUtil sUtil = new SUtil();
+		sUtil.add(id,username,Const.SUPERROLE);
+		return sUtil.update("delete a from QUESTIONS a,USER b where a.ADDWHO = b.NAME and a.id = ? and a.ADDWHO = ? and b.role = ?");
 	}
 	
 	/**
@@ -128,5 +125,10 @@ public class Question {
 		for(String questionid : questionids)
 			sUtil.addList(parentid,childrenid,questionid,username,childrenid);
 		return sUtil.updateList(sb.toString());
+	}
+	
+	public String saveFile(String username,String fileName){
+		
+		return "";
 	}
 }

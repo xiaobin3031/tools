@@ -47,16 +47,17 @@ public class Main extends HttpServlet{
 		String subAction = req.getParameter("subAction");
 		if("login".equals(action)){
 			if("isLogin".equals(subAction)){
-				if(Util.isNotNull(username)) json = JUtil.getCommJson(true);
-				else json = JUtil.getJson(username.toString(), Const.notLogin, false);
+				if(Util.isNotNull(username)) json = JUtil.getJson("", 0, true,"theme,"+session.getAttribute("theme"));
+				else json = JUtil.getJson("", Const.notLogin, false);
 			}else if("login".equals(subAction)){
 				String loginname = req.getParameter("loginname");
 				String pass = req.getParameter("pass");
 				User user = new User();
-				String _username = user.doLogin(loginname, pass);
-				if(loginname.equals(_username)){
-					json = JUtil.getJson("", 0, true);
+				String[] result = user.doLogin(loginname, pass).split(",");
+				if(loginname.equals(result[0])){
+					json = JUtil.getJson("", 0, true,"theme,"+result[1]);
 					session.setAttribute("username", loginname);
+					session.setAttribute("theme", result[1]);
 					setSessionTime(session,loginname);
 				}else
 					json = JUtil.getJson("用户名或者密码错误", Const.alertCode, false);
@@ -69,6 +70,10 @@ public class Main extends HttpServlet{
 					session.setAttribute("username", loginname);
 				else
 					json = JUtil.getJson("注册失败，请重试", Const.alertCode, false);
+			}else if("updateTheme".equals(subAction)){
+				String theme = req.getParameter("theme");
+				User user = new User();
+				json = user.updateTheme(username.toString(), theme);
 			}
 		}else{
 			if(Util.isNotNull(username)){

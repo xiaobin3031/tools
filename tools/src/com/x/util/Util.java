@@ -16,9 +16,10 @@ public class Util {
 	private static final int INDEX3 = 27;
 //	private static final String SUPP = "0123456789abcdef";
 	
-	private static final String regExp_DOUBLE = "^[-]?[0-9]*[.]?[0-9]*";
-	private static final String regExp_LessOne = "^[-]?[0]+[.][0-9]*";
-	private static final String regExp_INTEGER = "^[-]?[0-9]*";
+	private static final String regExp_DOUBLE = "^-?[0-9]*.?[0-9]*";
+	private static final String regExp_LessOne = "^-?[0]+.[0-9]*";
+	private static final String regExp_INTEGER = "^-?[0-9]*";
+	
 	/**
 	 * 判断obj是否为空
 	 * @param obj
@@ -128,4 +129,5 @@ public class Util {
 	public static String getUuid() {
 		return UUID.randomUUID().toString().replace("-", "");
 	}
+	
 }
