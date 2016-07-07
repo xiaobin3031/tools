@@ -24,16 +24,6 @@
     <load-on-startup>1</load-on-startup>
   </servlet>
   
-  <servlet>
-  	<servlet-name>action</servlet-name>
-  	<servlet-class>com.x.main.Main</servlet-class>
-  </servlet>
-  <servlet-mapping>
-  	<servlet-name>action</servlet-name>
-  	<url-pattern>/action.php</url-pattern>
-  </servlet-mapping>
-  
-  
   <!-- JNDI引用 -->
  <!-- <resource-ref>
   	<description>Oracle DB Connection</description>

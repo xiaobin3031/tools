@@ -29,8 +29,9 @@ public class Question {
 		StringBuffer sb = new StringBuffer();
 		SUtil sUtil = new SUtil();
 		sb.append("select")
-		.append(" q.id,q.title,bc.name as status,replace(ifnull(q.notes,''),'\n','<br>') as notes")  
+		.append(" q.id,q.title,bc.name as status,replace(ifnull(q.notes,''),'\n','<br>') as notes,ifnull(count(qu.id),0) as filecount")  
 		.append(" from QUESTIONS q left join BASCODES bc on q.STATUS = bc.code and bc.codeid = 'QUE_STS'")
+		.append(" left join QUESTIONUPLOAD qu on q.ID = qu.QUESTIONID")
 		.append(" where q.ACTIVE_FLAG = 'Y'")
 		.append(" and q.ADDWHO = ? and q.PARENT_ID = ?");
 		sUtil.add(username,parentId);
@@ -46,8 +47,9 @@ public class Question {
 			sb.append(" and q.title like ?");
 			sUtil.add("%"+searchTxt+"%");
 		}
-		sb.append(" order by q.status,q.CHILDREN_ID,q.ID desc");
-		sUtil.setColumns("id,title,status,notes");
+		sb.append(" group by q.id,q.title,bc.name,q.notes")
+		.append(" order by q.status,q.CHILDREN_ID,q.ID desc");
+		sUtil.setColumns("id,title,status,notes,filecount");
 		List<String> rows = sUtil.fetch(sb.toString(), pageNum);
 		json = JUtil.getDatagrid(sUtil.getTotalCount(), rows.toString());
 		return json;
@@ -127,8 +129,11 @@ public class Question {
 		return sUtil.updateList(sb.toString());
 	}
 	
-	public String saveFile(String username,String fileName){
-		
-		return "";
+	public String saveFile(String username,String questionid,String path,String filename){
+		SUtil sUtil = new SUtil();
+		StringBuffer sb = new StringBuffer();
+		sb.append("insert into QUESTIONUPLOAD(QUESTIONID,PATH,FILENAME,ADDWHO,ADDTIME) values(?,?,?,?,?)");
+		sUtil.add(questionid,path,filename,username,Util.date2String());
+		return sUtil.update(sb.toString());
 	}
 }

@@ -14,4 +14,7 @@ public class Const{
 	
 	public final static String HOSTER = "xiaobin";
 	public final static String SUPERROLE = "admin";
+	
+	
+	public final static String CHARSET = "UTF-8";
 }

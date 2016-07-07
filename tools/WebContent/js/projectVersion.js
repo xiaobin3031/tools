@@ -39,9 +39,14 @@ $(function(){
 		}
 	});
 	
+	//给table添加点击事件
+	$('#quesTabs').delegate('input','keyup',function(e){
+		if(e.keyCode == 13) 
+			saveData();
+	});
+	
 	getProject();
 	$('#usertext').text(X.cookie.get('username'));
-	
 });
 function saveTheme(){
 	var theme = $('#themeChange').combobox('getValue');
@@ -96,8 +101,19 @@ function addProject(){
 	}
 	$('#projectNameSelect').combobox('loadData',data);
 	//为添加窗口初始化输入框
-	var selectedProject = $('#projectNames').tree('getSelected');
-	if(selectedProject != null){
+	var selectedProject = getTreeParentChildren();
+	//如果选中的子节点
+	if(!X.isEmpty(selectedProject.parentId) && !X.isEmpty(selectedProject.childrenId)){
+		$('#projectLevel').combobox('select','s');
+		$('#projectName').textbox('disable');
+		$('#projectId').textbox('setValue',selectedProject.parentId);
+		$('#projectName').textbox('setValue',selectedProject.parentText);
+		$('#projectNameSelect').combobox('select',selectedProject.parentId);
+	}else
+		$('#projectLevel').combobox('select','p');
+	
+	
+	/*if(selectedProject != null){
 		if($('#projectNames').tree('isLeaf',selectedProject.target)){
 			//Children
 			$('#projectLevel').combobox('select','s');
@@ -113,7 +129,7 @@ function addProject(){
 		}else
 			//Parent
 			$('#projectLevel').combobox('select','p');
-	}
+	}*/
 }
 function saveProject(){
 	var oData = {};
@@ -154,6 +170,7 @@ function setProjectInWindow(v){
 	$('#projectCode').textbox('setValue',v.code).textbox('disable');
 	$('#projectName').textbox('setValue',v.text).textbox('disable');
 	$('#projectLevel').combobox('setValue','s');
+	$('#subCodeName').next('span').find('input').focus();
 }
 function projectLevelSelect(v){
 	if(v.value == 'p'){
@@ -183,6 +200,7 @@ function getQuestions(isRequired,searchTxt){
 	q.datagrid('getPager').pagination('loading');
 	var selected = getTreeParentChildren();
 	if(selected == null) return;
+	$('#quesAttachment').linkbutton({text:'0'});
 	var pageNumber = q.datagrid('getPager').pagination('options').pageNumber;
 	pageNumber = pageNumber == 0 ? 1 : pageNumber;
 	if(pageNumber == 1 && !isRequired){
@@ -223,10 +241,63 @@ function getQuestions(isRequired,searchTxt){
 	});
 }
 function attachment(){
+	if($('#questions').datagrid('getSelected') == null) return;
 	$('#attachmentWin').window('open');
 }
 function uploadFile(){
-	alert($('#quesFile').filebox('getValue'));
+	if(parseInt($('#quesfileprobar').progressbar('getValue')) < 100) return;
+	var oData = {};
+	oData.action = 'question';
+	oData.subAction = 'uploadFile';
+	oData.questionid = $('#questions').datagrid('getSelected').id;
+	uploadIndex --;
+	oData.index = uploadIndex;
+	$('#quesUploadBtn').linkbutton({text:'上传中...'}).linkbutton('disable');
+	uploadFile2(oData);
+}
+function uploadFile2(oData){
+	oData.index = oData.index + 1;
+	if(oData.index < uploadFileNames.length){
+		oData.filename = uploadFileNames[oData.index];
+		oData.file = uploadFiles[oData.index];
+		X.ajax(oData,function(data){
+			var json = X.toJson(data,{needReload:false});
+			X.dialog(json.resultMsg,json.code);
+			if(json.success){
+				//刷新文件数
+				uploadFile2(oData);
+				$('#quesfileuploadbar').progressbar('setValue',parseInt(oData.index/uploadFileNames.length*100));
+			}else{
+				if(json.code != X.cons.notLogin){
+					$('#quesUploadBtn').linkbutton({text:'部分文件上传完毕，但是有错误'});
+					uploadIndex = oData.index;
+					$('#attachmentWin').window('close');
+				}else
+					$('#quesUploadBtn').linkbutton({text:'上传文件'}).linkbutton('enable');
+			}
+		},X.cons.upload);
+	}else{
+		$('#quesUploadBtn').linkbutton({text:'上传完毕，2秒后关闭该窗口'});
+		timeo = window.setTimeout(function(){
+			$('#attachmentWin').window('close');
+		}, 2000);
+	}
+}
+function closeAttachment(){
+	var filecount = parseInt($('#questions').datagrid('getSelected').filecount);
+	var newcount = document.getElementById('fileSelect').files.length;
+	if(newcount > 0){
+		filecount += newcount;
+		$('#questions').datagrid('getSelected').filecount = filecount;
+		$('#quesAttachment').linkbutton({text:filecount});
+	}
+	uploadFileNames = undefined;
+	unloadFiles = undefined;
+	X.closeIntervalTimeout();
+	$('#quesfileprobar').progressbar('setValue',0);
+	$('#quesfileuploadbar').progressbar('setValue',0);
+	$('#fileSelect').val('');
+	$('#quesUploadBtn').linkbutton({text:'上传文件'}).linkbutton('enable');
 }
 function getShareQuestions(isRequired,searchTxt){
 	$('#solution').empty();
@@ -280,9 +351,15 @@ function setQuestions(rows){
 	isEdit = false;
 }
 function shareData(){
-	if(ques_selectedTitle != '全部' || !$('#quesLayout').layout('panel','west').panel('options')['collapsed']) return;
+	if(ques_selectedTitle != '全部' 
+		|| !$('#quesLayout').layout('panel','west').panel('options')['collapsed']
+		//|| $('#questions').datagrid('getRows').length <= 0
+	) return;
 	$('#questions').datagrid('showColumn','ques_ck');
 	$('#quesLayout').layout('expand','west');
+	//现在也可以共享整个项目
+//	$('#projectNames').tree({checkbox:true});
+	$('#projectNames .tree-title').before('<span class="tree-checkbox tree-checkbox0"></span>');
 	var oData = {};
 	oData.action = 'friends';
 	oData.subAction = 'getFriends';
@@ -361,6 +438,9 @@ function cancelShareQues(){
 	$('#questions').datagrid('hideColumn','ques_ck');
 	$('#questions').datagrid('uncheckAll');
 	$('#projectParent').tree('loadData',[]);
+	$('#projectNames .tree-checkbox.tree-checkbox0').detach();
+	$('#projectNames .tree-checkbox.tree-checkbox1').detach();
+	$('#projectNames .tree-checkbox.tree-checkbox2').detach();
 }
 function editQuesNote(){
 	if($('#questions').datagrid('getSelected') != null && $('#ques_input').length <= 0){
@@ -371,7 +451,7 @@ function editQuesNote(){
 		options.width = '100%';
 		options.height = '100%';
 		$('#ques_input').textbox(options);
-		$('#ques_input').textbox('setValue',$('#questions').datagrid('getSelected').notes.replace('<br>','\n'));
+		$('#ques_input').textbox('setValue',$('#questions').datagrid('getSelected').notes.replace(/<br>/g,'\n'));
 		$('#ques_input').next('span').find('textarea').focus();
 	}
 }
@@ -404,13 +484,13 @@ function addData(){
 		isAdd = true;
 		q.datagrid('appendRow',{});
 		var index = q.datagrid('getRows').length - 1;
-		edit_index = index;
 		q.datagrid('selectRow',index).datagrid('beginEdit',index);
-		var comb = q.datagrid('getEditor',{index:edit_index,field:'status'});
+		var comb = q.datagrid('getEditor',{index:index,field:'status'});
 		$(comb.target).combobox('setValue','00');
+		edit_index = index;
 	}else
 		q.datagrid('selectRow',edit_index);
-	$('#questions').prev('div').find('.datagrid-body').find('table tbody tr:eq('+edit_index+')').find('input:eq(0)').focus();
+	q.datagrid('getEditor',{index:edit_index,field:'title'}).target.focus();
 }
 function endEditing(){
 	return edit_index == undefined && !$('#questions').datagrid('getPager').pagination('options').loading;
@@ -462,7 +542,7 @@ function saveData(){
 }
 
 function removeData(){
-	if($('#questions').datagrid('getPager').pagination('options').loading) return;
+	if($('#questions').datagrid('getPager').pagination('options').loading || ques_selectedTitle != '全部') return;
 	if(confirm("sure to remove this data?")){
 		var q = $('#questions');
 		if(q.datagrid('getSelected') != null){
@@ -488,11 +568,12 @@ function removeData(){
 }
 function onSelectRow(index,data){
 	rowIndex = index;rowSelectedData = data;
-	if(isEdit) $('#questions').datagrid('endEdit',edit_index);
+	if(isEdit || isAdd) $('#questions').datagrid('endEdit',edit_index);
 	if(data.id == undefined) return;
 	if($('#notes_span').length <= 0)
 		$('#quesNotePanel').empty();
 	$('#quesNotePanel').panel({content:data.notes});
+	$('#quesAttachment').linkbutton({text:data.filecount});
 	getSolution(data.id);
 }
 function questionDblRow(rowIndex,rowData){
@@ -501,14 +582,15 @@ function questionDblRow(rowIndex,rowData){
 	$('#questions').datagrid('beginEdit',rowIndex);
 	if(edit_index != undefined) $('#questions').datagrid('endEdit',edit_index);
 	edit_index = rowIndex;
-	var a = $('#questions').prev('div').find('.datagrid-body').find('table tbody tr:eq('+edit_index+')').find('input:eq(0)');
-	a.focus();
-	a.value = '';
-	a.value = rowData.title;
+	var editor = $('#questions').datagrid('getEditor',{index:edit_index,field:'title'});
+	$(editor.target).focus();
+	$(editor.target).val(X.fromEntities($(editor.target).val()));
 }
 //questions模块结束
 
-
+/**
+ * 获取选中的Project
+ */
 function getTreeParentChildren(id){
 	if(id == undefined) id = 'projectNames';
 	if(!$('#'+id).tree('getSelected')) return null;
@@ -549,7 +631,7 @@ function getSolution(id,isRequired){
 		oData.subAction = 'getSolutions';
 		oData.questionId = id;
 		X.ajax(oData,function(data){
-			var json = X.toJson(data.replace(/[\n]+/g,'<br />'));
+			var json = X.toJson(data.replace(/[\n]+/g,'<br />'),{needReload:false});
 			X.dialog(json.resultMsg,json.code);
 			if(json.success){
 				setSolutions(json.data);

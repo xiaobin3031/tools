@@ -11,7 +11,7 @@ import java.util.Set;
  */
 public class JUtil {
 	/**
-	 * 获取JSON的格�?
+	 * 获取JSON的格式
 	 * @param resultMsg  返回提示信息
 	 * @param code  代码
 	 * @param success  是否正确
@@ -40,11 +40,11 @@ public class JUtil {
 	}
 	
 	/**
-	 * 获取JSON的格�?
+	 * 获取JSON的格格式
 	 * @param resultMsg  返回提示信息
 	 * @param code  代码
 	 * @param success  是否正确
-	 * @param keyAndValue  自定义键值对，由字符串组�?
+	 * @param keyAndValue  自定义键值对，由字符串组�成
 	 * @return
 	 */
 	public static String getJson(String resultMsg,int code,boolean success){

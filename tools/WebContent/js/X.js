@@ -1,5 +1,5 @@
 var usernametext = 'loginname',passtext = 'pass',globalNotes = undefined,notesFlag = false,
-themeChangeIsLoaded = false;
+themeChangeIsLoaded = false,uploadFiles,uploadFileNames,inter,timeo,uploadIndex = 0;
 $(function(){
 	if(X.isEmpty(X.cookie.get('username'))){
 		var oData = {};
@@ -38,7 +38,7 @@ $(function(){
 	}
 });
 var X={
-cons:{url:'action.php',pageSize:50,alertCode:-200,notLogin:-101},
+cons:{url:'action.php',upload:'upload.php',pageSize:50,alertCode:-200,notLogin:-101},
 que_sts:{'已创建':'00','已解决':'50'},
 init:function(){
     X.ajax({action:"userOrAdmin"},function(data){
@@ -51,7 +51,6 @@ init:function(){
            });
 },
 ajax:function(data,callback,url){
-	//发送请求前，查看cookie是否存在
     var s = {};
     s.type="POST";
     s.url = X.isEmpty(url) ? X.cons.url : url;
@@ -61,7 +60,41 @@ ajax:function(data,callback,url){
     	alert("请求发生异常，请重试");
     }
     $.ajax(s);
-},  
+},
+readFile:function(){
+	uploadIndex = 0;
+	var files = document.getElementById('fileSelect').files;
+	uploadFiles = new Array();
+	uploadFileNames = new Array();
+	if(files.length > 0){
+//		$('#quesfileprobar').progressbar({value:files.length});
+		var index = 0;
+		var reader = new FileReader();
+		reader.onload = function(e){
+			uploadFiles.push(e.target.result.replace(/^data.*?base64,/,''));
+			index ++;
+			$('#quesfileprobar').progressbar('setValue',parseInt(index/files.length*100));
+			if(index < files.length){
+				uploadFileNames.push(files[index].name);	
+				reader.readAsDataURL(files[index]);
+			}
+		}
+		uploadFileNames.push(files[index].name);
+		reader.readAsDataURL(files[index]);
+	}
+},
+closeIntervalTimeout:function(interval,timeout){
+	if(interval == undefined) interval = inter;
+	if(timeout == undefined) timeout = timeo;
+	if(interval != undefined){
+		window.clearInterval(interval);
+		interval = undefined;
+	}
+	if(timeout != undefined){
+		window.clearTimeout(timeout);
+		timeout = undefined;
+	}
+},
 getWeatherImg:function(weatherDes){
     if(weatherDes.indexOf('多云') != -1 || weatherDes.indexOf('晴') != -1){
         return 's_1.png';
@@ -90,12 +123,18 @@ getWeatherImg:function(weatherDes){
     else if(weatherDes.indexOf('尘沙') != -1) return 's_11.png';
     else return 's_12.png';
 },
-toJson:function(data){
+/**
+ * od:需要补充进data的对象
+ */
+toJson:function(data,od){
     //		return JSON.parse(data);
     //		return $.parseJSON(data);
 	var json = eval('('+data+')');
+	if(od != undefined)
+		for(var x in od)
+			json[x] = od[x];
 	if(json.success == false && X.cons.notLogin == json.code){
-		X.loginDialog();
+		X.loginDialog(json.needReload);
 	}
     return json;
 },
@@ -204,38 +243,42 @@ loadXMLString:function(dname){
     return xmlDoc;
 },
 dialog:function(v,c){
-	if($('#globalNotes').length > 0 && !X.isEmpty(v) && c != undefined){
-		$('#globalNotes > div').css({width:'','margin-left':''});
-		
-		$('#globalNotes span').text(v);
-		var parentWidth = parseInt($('#globalNotes').css('width').replace('px',''));
-		var spanWidth = parseInt($('#globalNotes span').css('width').replace('px',''));
-		spanWidth += 15;
-		var leftWidth = (parentWidth - spanWidth)/2;
-		$('#globalNotes > div').css({width:spanWidth+'px','margin-left':leftWidth+'px'});
-		//动画展示
-		$('#globalNotes').animate({bottom:'0px'},500);
-		if(globalNotes != undefined){
-			//说明定时器已经触发，取消动画并且取消定时
-			$('#globalNotes').stop();
-			window.clearTimeout(globalNotes);
-			globalNotes = undefined;
-		}
-		if(c >= 0){
-			//warn，对警告信息，设置消息框隐藏功能
-			$('#globalNotes > div').css('background-color','#00CCFF');
-			globalNotes = window.setTimeout(function(){
-				$('#globalNotes').animate({bottom:'-30px'},'slow');
+	if($('#globalNotes').length > 0){
+		if(!X.isEmpty(v) && c != undefined){
+			$('#globalNotes > div').css({width:'','margin-left':''});
+			
+			$('#globalNotes span').text(v);
+			var parentWidth = parseInt($('#globalNotes').css('width').replace('px',''));
+			var spanWidth = parseInt($('#globalNotes span').css('width').replace('px',''));
+			spanWidth += 15;
+			var leftWidth = (parentWidth - spanWidth)/2;
+			$('#globalNotes > div').css({width:spanWidth+'px','margin-left':leftWidth+'px'});
+			//动画展示
+			$('#globalNotes').animate({bottom:'0px'},500);
+			if(globalNotes != undefined){
+				//说明定时器已经触发，取消动画并且取消定时
+				$('#globalNotes').stop();
 				window.clearTimeout(globalNotes);
 				globalNotes = undefined;
-			},3*1000+500);
-		}else{
-			//error，对错误信息，设置消息框不隐藏
-			$('#globalNotes > div').css('background-color','#FF0033');
+			}
+			if(c >= 0){
+				//warn，对警告信息，设置消息框隐藏功能
+				$('#globalNotes > div').css('background-color','#00CCFF');
+				globalNotes = window.setTimeout(function(){
+					$('#globalNotes').animate({bottom:'-30px'},'slow');
+					window.clearTimeout(globalNotes);
+					globalNotes = undefined;
+				},3*1000+500);
+			}else{
+				//error，对错误信息，设置消息框不隐藏
+				$('#globalNotes > div').css('background-color','#FF0033');
+			}
 		}
+	}else{
+		alert(v);
 	}
 },
-loginDialog:function(id){
+loginDialog:function(isNeedReload,id){
 	var t = new Text();
 	if(X.isEmpty(id)) id = 'login';
 	if($('#'+id+'Win').length > 0) $('#'+id+'Win').remove();
@@ -262,7 +305,7 @@ loginDialog:function(id){
 	t.close();
 	t._('<div style="width:40%;text-align:center;float:left;margin-left:10%;margin-top:20px;">')
 	._('<a id="'+id+'WinLayoutOKBtn" class="easyui-linkbutton" data-options="iconCls:\'icon-ok\'" ')
-	._('href="javascript:void(0)" onclick="login();" style="width:80px">登录</a></div>')
+	._('href="javascript:void(0)" onclick="login(\''+isNeedReload+'\',\''+id+'Win'+'\');" style="width:80px">登录</a></div>')
 	._('<div style="width:40%;text-align:center;float:left;margin-top:20px;">')
 	._('<a id="'+id+'WinLayoutCANBtn" class="easyui-linkbutton" data-options="iconCls:\'icon-cancel\'" ')
 	._('href="javascript:void(0)" onclick="regist();" style="width:80px">注册</a>')
@@ -324,7 +367,10 @@ removeRepStr:function(v){
 	return v;
 },
 toEntities:function(v){
-	return v.replace(/'/g,'&#39;').replace(/</g,'&#60;').replace(/>/g,'&#62;');
+	return v.replace(/'/g,'&#39;').replace(/"/g,'&#34;').replace(/</g,'&#60;').replace(/>/g,'&#62;');
+},
+fromEntities:function(v){
+	return v.replace(/&#39;/g,"'").replace(/&#34;/g,'"').replace(/&#60;/g,'<').replace(/&#62;/g,'>');
 },
 rhtmlC:function(v){
 	if(X.isEmpty(v)) return '';
@@ -512,7 +558,7 @@ function _x(v,i){
 	
 }
 
-function login(){
+function login(isNeedReload,winid){
 	var oData = {};
 	oData.loginname = $('#'+usernametext).textbox('getValue');
 	if(X.isEmpty(oData.loginname)) {
@@ -530,7 +576,9 @@ function login(){
 		var json = X.toJson(data);
 		if(json.success){
 			X.cookie.set({username:oData.loginname,theme:json.theme});
-			location.reload(true);
+			if(isNeedReload == undefined || isNeedReload == 'undefined') location.reload(true);
+			else
+				if(!X.isEmpty(winid)) $('#'+winid).window('close');
 		}else{
 			X.dialog(json.resultMsg,json.code);
 			$('#'+usernametext).linkbutton('enable');
@@ -570,4 +618,9 @@ function regist(){
 }
 function loginDialogKeyup(e,id){
 	if(e.keyCode == 13) $('#'+id+'WinLayoutOKBtn').click();
+}
+function testObj(v){
+	for(var x in v){
+		alert(x+';'+v[x]);
+	}
 }

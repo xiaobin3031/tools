@@ -15,6 +15,8 @@ var a = true;
 function test(){
 	alert('theme := '+X.cookie.get('theme'));
 }
+
+
 </script>
 <style>
 
@@ -41,16 +43,23 @@ function test(){
 	</div>
 	<div
 		data-options="region:'west',split:false,title:'ProjectName',tools:'#mainWestBtn',collapsible:false"
-		style="width: 10%; padding: 10px;">
-		<ul id="projectNames" class="easyui-tree" 
-			data-options="animate:true,lines:true,onSelect:getQuestions,onlyLeafCheck:true,
+		style="width: 10%;">
+		<div class="easyui-panel" style="width:100%;height:60%;padding:10px;" data-options="border:false">
+			<ul id="projectNames" class="easyui-tree" 
+			data-options="animate:true,lines:true,onSelect:getQuestions,checkbox:true,
 				formatter:function(node){
 					if(node.children){
 						return '&#60;span style=&#34;color:#00CCFF;&#34;&#62;'+node.text+'&#60;/span&#62;';
 					}
 					else return node.text;
+				},
+				onLoadSuccess:function(){
+					$('#projectNames .tree-checkbox.tree-checkbox0').detach();
 				}">
-		</ul>
+			</ul>
+		</div>
+		<div class="easyui-panel" style="width:100%;height:40%;" data-options="title:'recycle',border:false">
+		</div>
 	</div>
 	<div data-options="region:'south',border:false" style="height: 50px; background: #A9FACD; padding: 10px;">south
 		region</div>
@@ -106,12 +115,13 @@ function test(){
 											<tr>
 												<th data-options="field:'ques_ck',checkbox:true,hidden:true"></th>
 												<th data-options="field:'id',width:'5%'">编号</th>
-												<th data-options="field:'title',width:'75%',editor:'validatebox'">Question</th>
+												<th data-options="field:'title',width:'75%',editor:'text'">Question</th>
 												<th data-options="field:'status',width:'10%',
 													editor:{type:'combobox',options:{ 
 														valueField:'code',textField:'name',url:'json/questionsts.json',method:'get' 
 													}}">状态</th> 
 												<th data-options="field:'notes',hidden:true"></th>
+												<th data-options="field:'filecount',hidden:true"></th>
 											</tr>
 										</thead>
 									</table>
@@ -236,27 +246,26 @@ function test(){
 		</div>
 	</div>
 	<div id="attachmentWin" class="easyui-window" data-options="title:'附件上传和下载',closed:true,modal:true,
-		collapsible:false,minimizable:false,maximizable:false,resizable:false,
-		tools:[{
-			iconCls:'icon-add',
-			handler:function(){
-				addQuesFile();
-			}
-		},
-		{
-			iconCls:'icon-save',
-			handler:function(){
-				uploadFile();
-			}
-		}]" style="width:40%;height:50%;">
-		<div style="width:100%;height:10%;">
-			<form id="quesAttach" enctype="multipart/form-data">
-				<div>
-					<a id="file1" data-options="buttonText:'Choose File',buttonAlign:'right'" class="easyui-filebox" style="width:100%;">选择文件</a>
+		collapsible:false,minimizable:false,maximizable:false,resizable:false,onClose:closeAttachment" style="width:40%;height:50%;">
+		<div class="easyui-tabs" data-options="fit:true,border:false">
+			<div title="上传" style="padding:10px;">
+				<input type="file" id="fileSelect" name="imgs[]" onchange="X.readFile();" multiple="multiple"/>
+				<div style="margin-top:20px;">
+					解析进度:
+					<div class="easyui-progressbar" id="quesfileprobar" style="width:100%;"></div>
 				</div>
-			</form>
+				<div style="margin-top:20px;">
+					上传进度:
+					<div class="easyui-progressbar" id="quesfileuploadbar" style="width:100%"></div>
+				</div>
+				<div style="margin-top:20px;text-align:center;">
+					<a id="quesUploadBtn" href="javascript:void(0);" class="easyui-linkbutton" onclick="uploadFile();">上传文件</a>
+				</div>
+			</div>
+			<div title="下载">
+			
+			</div>
 		</div>
-		<div class="easyui-panel" style="width:100%;height:90%;"></div>
 	</div>
 </body>
 </html>

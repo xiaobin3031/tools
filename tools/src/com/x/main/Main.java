@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -20,6 +21,7 @@ import com.x.util.Const;
 import com.x.util.JUtil;
 import com.x.util.Util;
 
+@WebServlet(name="action", urlPatterns={"/action.php"})
 public class Main extends HttpServlet{
 
 	/**
@@ -158,7 +160,7 @@ public class Main extends HttpServlet{
 					else json = JUtil.getJson("请输入表名或视图名", -1, false);
 				}
 			}else
-				json = JUtil.getJson("用户未登录", -101, false);
+				json = JUtil.getJson("用户未登录", Const.notLogin, false);
 		}
 		PrintWriter pw = null;
 		try {
