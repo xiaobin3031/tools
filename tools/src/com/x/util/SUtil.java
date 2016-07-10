@@ -5,6 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import com.x.db.DB;
 
@@ -19,6 +20,7 @@ public class SUtil{
 	private String column = "";
 	private ArrayList<String> condition = new ArrayList<String>();
 	private ArrayList<ArrayList<String>> conditionList = new ArrayList<ArrayList<String>>();
+	private HashMap<Integer,ArrayList<ArrayList<String>>> conditionMap = new HashMap<Integer,ArrayList<ArrayList<String>>>();
 	private boolean isNeedCount;		//是否需要总数
 	private boolean isNeedPage;			//是否需要分页
 	private int totalCount = 0;			//isNeedCount == true的情况下,计算SQL的总记录数
@@ -64,6 +66,15 @@ public class SUtil{
 	 * @param strs
 	 */
 	public void addList(String... strs){ArrayList<String> _condition = new ArrayList<String>();for(String str : strs) _condition.add(str);conditionList.add(_condition);}
+	
+	public void addLists(int index,String...strs){
+		ArrayList<ArrayList<String>> list = conditionMap.get(index);
+		if(list == null) list = new ArrayList<ArrayList<String>>();
+		ArrayList<String> _condition = new ArrayList<String>();
+		for(String str : strs) _condition.add(str);
+		list.add(_condition);
+		conditionMap.put(index, list);
+	}
 	
 	/**
 	 * 查询数据	--根据isNeedCount变量是否查询总数据(如果查询出来的总数小于页容量,则直接取list的size,否则,重新查询总数);
@@ -171,7 +182,9 @@ public class SUtil{
 					ps.setString(j+1, _condition.get(j));
 				ps.addBatch();
 				if(i % 100 == 0 || i == conditionList.size() - 1){
-					resultCount += ps.executeBatch().length;
+					int[] counts = ps.executeBatch();
+					for(int count : counts)
+						resultCount += count;
 					ps.clearBatch();
 				}
 			}
@@ -188,6 +201,52 @@ public class SUtil{
 		} finally{
 			DB.getInstance().close(con, ps);
 			conditionList.clear();
+		}
+		return json;
+	}
+	
+	/**
+	 * 更新多个SQL
+	 * @param sqls
+	 * @return
+	 */
+	public String updateLists(String[] sqls){
+		String json = "";
+		Connection con = null;
+		PreparedStatement ps = null;
+		int resultCount = 0;
+		try {
+			con = DB.getInstance().getConn();
+			con.setAutoCommit(false);
+			if(sqls != null && sqls.length > 0){
+				for(int i=0;i<sqls.length;i++){
+					ps = con.prepareStatement(sqls[i]);
+					ArrayList<ArrayList<String>> list = conditionMap.get(i);
+					for(int k =0;k<list.size();k++){
+						for(int j=0;j<list.get(k).size();j++) ps.setString(j+1, list.get(k).get(j));
+						ps.addBatch();
+						if(k % 100 == 0 || k == list.get(k).size() - 1){
+							int[] counts = ps.executeBatch();
+							for(int count : counts)
+								resultCount += count;
+							ps.clearBatch();
+						}
+					}
+				}
+				con.commit();
+			}
+			json = JUtil.getJson("批量更新完成!影响数据数："+resultCount, Const.success, true);
+		} catch (Exception e) {
+			e.printStackTrace();
+			try {
+				con.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			json = JUtil.getJson("批量更新异常!原因: "+e.getMessage().replaceAll("near.*", ""), Const.fail, false);
+		} finally{
+			DB.getInstance().close(con, ps);
+			conditionMap.clear();
 		}
 		return json;
 	}

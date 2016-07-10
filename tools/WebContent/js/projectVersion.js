@@ -45,7 +45,8 @@ $(function(){
 			saveData();
 	});
 	
-	getProject();
+	getProject('projectNames');
+	getProject('projectShare',true);
 	$('#usertext').text(X.cookie.get('username'));
 });
 function saveTheme(){
@@ -77,15 +78,17 @@ function tabAdd(){
 /**
  * project模块
  */
-function getProject(){
+function getProject(id,isShare){
 	//查询数据库
+	if(!isShare) isShare = false;
 	var oData = {};
 	oData.action = 'project';
 	oData.subAction = 'getProject';
+	oData.isShare = isShare;
 	X.ajax(oData,function(data){
 		if(data) {
 			var json = X.toJson(data);
-			$('#projectNames').tree('loadData',json);
+			$('#'+id).tree('loadData',json);
 		}
 	});
 }
@@ -397,29 +400,40 @@ function addQuesFile(){
 		buttonAlign:'right'
 	});
 }
+/**
+ * 分享
+ */
 function shareQues(){
-	var ques_cked = $('#questions').datagrid('getChecked');
-	if(ques_cked == null || ques_cked.length <= 0) return;
+//	var nodes = $('#projectNames').tree('getChecked',['checked','indeterminate']);
+//	for(var i=0;i<nodes.length;i++)
+//		testObj(nodes[i]);
+//	return;
 	var friends_cked = $('#friends').datagrid('getChecked');
-	var questions = new Array();
-	for(var i=0;i<ques_cked.length;i++)
-		questions.push(ques_cked[i].id);
+	var friends = new Array();
 	if(friends_cked != null && friends_cked.length > 0){
-		var friends = new Array();
 		for(var i=0;i<friends_cked.length;i++)
 			friends.push(friends_cked[i].userid);
-		var oData = {};
-		oData.action = 'share';
-		oData.subAction = 'saveShare';
-		oData.userids = friends;
-		oData.questionids = questions;
-		X.ajax(oData,function(data){
-			var json = X.toJson(data);
-			if(json.success){
-				cancelShareQues();
-			}
-		});
 	}
+	if(friends.length > 0){
+		var questions = new Array();
+		var ques_cked = $('#questions').datagrid('getChecked');
+		if(ques_cked != null && ques_cked.length > 0){
+			for(var i=0;i<ques_cked.length;i++)
+				questions.push(ques_cked[i].id);
+			var oData = {};
+			oData.action = 'share';
+			oData.subAction = 'saveShare';
+			oData.userids = friends;
+			oData.questionids = questions;
+			X.ajax(oData,function(data){
+				var json = X.toJson(data);
+				if(json.success){
+					cancelShareQues();
+				}
+			});
+		}
+	}
+	//转移
 	if($('#projectParent').tree('getSelected') != null){
 		var oData = getTreeParentChildren('projectParent');
 		oData.action = 'questions';
@@ -430,6 +444,32 @@ function shareQues(){
 			X.dialog(json.resultMsg, json.code);
 			getQuestions(true);
 		});
+	}
+	//分享Project
+	if(friends.length > 0){
+		var nodes = $('#projectNames').tree('getChecked',['checked','indeterminate']);
+		if(nodes.length > 0){
+			var parents = new Array(),childrens = new Array();
+			for(var i =0;i<nodes.length;i++){
+				//如果子节点有被选中，父节点总是被会选中，只是checkState有所不同
+				if(nodes[i].children != undefined)
+					parents.push(nodes[i].id);
+				childrens.push(nodes[i].id);
+			}
+			//遍历一般都是到子节点结束，所以，最后一组可能没有push进childrens，但是如果最后一个父节点是完全选中状态，则不需要重新push，所以判断children_的length即可
+			var oData = {};
+			oData.action = 'project';
+			oData.subAction = 'shareProject';
+			oData.parents = parents;
+			oData.childrens = childrens;
+			oData.friends = friends;
+			X.ajax(oData,function(data){
+				var json = X.toJson(data);
+				X.dialog(json.resultMsg,json.code);
+				if(json.success)
+					getProject('projectShare', true);
+			});
+		}
 	}
 }
 function cancelShareQues(){

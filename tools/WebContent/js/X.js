@@ -377,6 +377,16 @@ rhtmlC:function(v){
 	v = v.replace(/"/g,'&#34;');
 	v = v.replace(/'/g,'&#39;');
 	return v;
+},
+toUrl:function(v){
+	if(X.isEmpty(v)) return '';
+	var regexp = new RegExp('https?:\/\/[a-zA-Z0-9]+\.[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)?(:[0-9]{1,5})?(/[a-zA-Z0-9?=]+)?','g');
+	var av = v.match(regexp);
+	if(av == null) return v;
+	for(var i=0;i<av.length;i++){
+		v = v.replace(av[i],'<a href="'+av[i]+'" target="_blank">'+av[i]+'</a>');
+	}
+	return v;
 }
 }
 X.html={
@@ -577,8 +587,10 @@ function login(isNeedReload,winid){
 		if(json.success){
 			X.cookie.set({username:oData.loginname,theme:json.theme});
 			if(isNeedReload == undefined || isNeedReload == 'undefined') location.reload(true);
-			else
+			else{
 				if(!X.isEmpty(winid)) $('#'+winid).window('close');
+				$('#globalNotes').animate({bottom:'-30px'},'slow');
+			}
 		}else{
 			X.dialog(json.resultMsg,json.code);
 			$('#'+usernametext).linkbutton('enable');

@@ -81,8 +81,10 @@ public class Main extends HttpServlet{
 			if(Util.isNotNull(username)){
 				if("project".equals(action)){
 					Project p = new Project();
-					if("getProject".equals(subAction))
-						json = p.getProject(username.toString());
+					if("getProject".equals(subAction)){
+						String isShare = Util.ifObjNull(req.getParameter("isShare"), "false").toString();
+						json = p.getProject(username.toString(),Boolean.parseBoolean(isShare));
+					}
 					else if("saveProject".equals(subAction)){
 						String sProjectName = req.getParameter("projectName");
 						String sProjectId = req.getParameter("projectId");
@@ -90,6 +92,12 @@ public class Main extends HttpServlet{
 						json = p.saveProject(username.toString(),sProjectId,sProjectName,aChildrens);
 					}else if("getProjectParent".equals(subAction))
 						json = p.getProjectParent(username.toString());
+					else if("shareProject".equals(subAction)){
+						String[] parents = req.getParameterValues("parents[]");
+						String[] childrens = req.getParameterValues("childrens[]");
+						String[] friends = req.getParameterValues("friends[]");
+						json = p.shareProject(username.toString() , parents, childrens,friends);
+					}
 				}else if("questions".equals(action)){
 					Question q = new Question();
 					String parentId = req.getParameter("parentId");

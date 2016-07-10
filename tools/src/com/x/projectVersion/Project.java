@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 import com.x.db.DB;
 import com.x.util.JUtil;
@@ -18,13 +19,15 @@ import com.x.util.XList;
  */
 public class Project {
 
-	public String getProject(String user){
+	public String getProject(String user,boolean isShare){
 		StringBuffer sb = new StringBuffer();
 		sb.append("select")
 		.append(" p.ID as PARENT_ID,p.NAME as PARENT_NAME,c.ID as SUB_ID,c.NAME as SUB_NAME")
 		.append(" from project_parent p left join project_children c on p.ID = c.PARENT_ID")
-		.append(" where p.ADDWHO = ? and ifnull(c.ADDWHO,?) = ?")
-		.append(" and p.ACTIVE_FLAG = 'Y' and ifnull(c.ACTIVE_FLAG,'Y') = 'Y'")
+		.append(" where p.ADDWHO = ? and ifnull(c.ADDWHO,?) = ?");
+		if(isShare)
+			sb.append(" and c.ISSHARE = 'Y'");
+		sb.append(" and p.ACTIVE_FLAG = 'Y' and ifnull(c.ACTIVE_FLAG,'Y') = 'Y'")
 		.append(" order by c.PARENT_ID desc,c.ID desc");
 		Connection con = null;
 		PreparedStatement ps = null;
@@ -135,5 +138,44 @@ public class Project {
 		return JUtil.getDatagrid(sUtil.getTotalCount(), sUtil.fetch(sb.toString(), 0).toString());
 	}
 	
+	public String shareProject(String username,String[] parents,String[] childrens,String[] friends){
+		String[] sqls = new String[2];
+		StringBuffer sb = new StringBuffer();
+		sb.append("insert into PROJECT_PARENT(NAME,ACTIVE_FLAG,ADDWHO,ADDTIME,EDITWHO,EDITTIME,ISSHARE,SHOW_SEQ)")
+		.append(" select NAME,ACTIVE_FLAG,?,?,?,?,'Y',SHOW_SEQ from PROJECT_PARENT where id in (");
+		ArrayList<String> parent = new ArrayList<String>();
+		for(int i=0;i<parents.length;i++){
+			sb.append("?,");
+			parent.add(parents[i]);
+		}
+		sqls[0] = sb.substring(0,sb.length() - 1)+")";
+		sb = new StringBuffer();
+		sb.append("insert into PROJECT_CHILDREN(PARENT_ID,NAME,ACTIVE_FLAG,ADDWHO,ADDTIME,EDITWHO,EDITTIME,ISSHARE,SHOW_SEQ)")
+		.append(" select PARENT_ID,NAME,ACTIVE_FLAG,?,?,?,?,'Y',SHOW_SEQ from PROJECT_CHILDREN where id in (");
+		ArrayList<String> children = new ArrayList<>();
+		for(int i=0;i<childrens.length;i++){
+			sb.append("?,");
+			children.add(childrens[i]);
+		}
+		sqls[1] = sb.substring(0, sb.length() - 1) + ")";
+		SUtil sUtil = new SUtil();
+		parent.add(0,Util.date2String());
+		parent.add(0,"");
+		parent.add(0,Util.date2String());
+		parent.add(0,"");
+		children.add(0,Util.date2String());
+		children.add(0,"");
+		children.add(0,Util.date2String());
+		children.add(0,"");
+		for(String friend : friends){
+			parent.set(0, friend);
+			parent.set(2, friend);
+			sUtil.addLists(0, parent.toArray(new String[parent.size()]));
+			children.set(0, friend);
+			children.set(2, friend);
+			sUtil.addLists(1, children.toArray(new String[children.size()]));
+		}
+		return sUtil.updateLists(sqls);
+	}
 	
 }

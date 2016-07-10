@@ -44,19 +44,33 @@ function test(){
 	<div
 		data-options="region:'west',split:false,title:'ProjectName',tools:'#mainWestBtn',collapsible:false"
 		style="width: 10%;">
-		<div class="easyui-panel" style="width:100%;height:60%;padding:10px;" data-options="border:false">
-			<ul id="projectNames" class="easyui-tree" 
-			data-options="animate:true,lines:true,onSelect:getQuestions,checkbox:true,
-				formatter:function(node){
-					if(node.children){
-						return '&#60;span style=&#34;color:#00CCFF;&#34;&#62;'+node.text+'&#60;/span&#62;';
-					}
-					else return node.text;
-				},
-				onLoadSuccess:function(){
-					$('#projectNames .tree-checkbox.tree-checkbox0').detach();
-				}">
-			</ul>
+		<div class="easyui-panel" style="width:100%;height:60%;" data-options="border:false">
+			<div class="easyui-tabs" data-options="fit:true,border:false">
+				<div title="全部" style="padding:10px;">
+					<ul id="projectNames" class="easyui-tree" 
+					data-options="animate:true,lines:true,onSelect:getQuestions,checkbox:true,
+						formatter:function(node){
+							if(node.children){
+								return '&#60;span style=&#34;color:#00CCFF;&#34;&#62;'+node.text+'&#60;/span&#62;';
+							}
+							else return node.text;
+						},
+						onLoadSuccess:function(){
+							$('#projectNames .tree-checkbox.tree-checkbox0').detach();
+						}">
+					</ul>
+				</div>
+				<div title="共享" style="padding:10px;">
+					<ul id="projectShare" class="easyui-tree" data-options="animate:true,lines:true,onSelect:getQuestions,
+						formatter:function(node){
+							if(node.children){
+								return '&#60;span style=&#34;color:#00CCFF;&#34;&#62;'+node.text+'&#60;/span&#62;';
+							}
+							else return node.text;
+						}">
+					</ul>
+				</div>
+			</div>
 		</div>
 		<div class="easyui-panel" style="width:100%;height:40%;" data-options="title:'recycle',border:false">
 		</div>
@@ -110,12 +124,16 @@ function test(){
 										border:false, 
 										onSelect:onSelectRow, 
 										onDblClickRow:questionDblRow, 
-										showFooter:true"> 
+										showFooter:true
+										"> 
 										<thead>
 											<tr>
 												<th data-options="field:'ques_ck',checkbox:true,hidden:true"></th>
 												<th data-options="field:'id',width:'5%'">编号</th>
-												<th data-options="field:'title',width:'75%',editor:'text'">Question</th>
+												<th data-options="field:'title',width:'75%',editor:'text',
+													formatter:function(value,row,index){
+														return X.toUrl(value);
+													}">Question</th>
 												<th data-options="field:'status',width:'10%',
 													editor:{type:'combobox',options:{ 
 														valueField:'code',textField:'name',url:'json/questionsts.json',method:'get' 
