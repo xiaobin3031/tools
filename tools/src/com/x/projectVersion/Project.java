@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 
 import com.x.db.DB;
+import com.x.util.Const;
 import com.x.util.JUtil;
 import com.x.util.SUtil;
 import com.x.util.Util;
@@ -22,12 +23,14 @@ public class Project {
 	public String getProject(String user,boolean isShare){
 		StringBuffer sb = new StringBuffer();
 		sb.append("select")
-		.append(" p.ID as PARENT_ID,p.NAME as PARENT_NAME,c.ID as SUB_ID,c.NAME as SUB_NAME")
+		.append(" p.ID as PARENT_ID,p.NAME as PARENT_NAME,(case c.ACTIVE_FLAG when 'N' then '' else ifnull(c.id,'') end) as SUB_ID,c.NAME as SUB_NAME")
 		.append(" from project_parent p left join project_children c on p.ID = c.PARENT_ID")
 		.append(" where p.ADDWHO = ? and ifnull(c.ADDWHO,?) = ?");
 		if(isShare)
 			sb.append(" and c.ISSHARE = 'Y'");
-		sb.append(" and p.ACTIVE_FLAG = 'Y' and ifnull(c.ACTIVE_FLAG,'Y') = 'Y'")
+		else
+			sb.append(" and ifnull(p.ISSHARE,'N') = 'N' and ifnull(c.ISSHARE,'N') = 'N'");
+		sb.append(" and p.ACTIVE_FLAG = 'Y'")
 		.append(" order by c.PARENT_ID desc,c.ID desc");
 		Connection con = null;
 		PreparedStatement ps = null;
@@ -83,7 +86,7 @@ public class Project {
 				ps.setString(4, Util.date2String());
 				if(ps.executeUpdate() <= 0) {
 					con.rollback();
-					return JUtil.getJson("保存父节点失败", -201, false);
+					return JUtil.getJson("保存父节点失败", Const.alertCode, false);
 				}
 				con.commit();
 				ps = con.prepareStatement("select ID from PROJECT_PARENT where ADDWHO = ? order by ADDTIME desc limit 0,1");
@@ -176,6 +179,21 @@ public class Project {
 			sUtil.addLists(1, children.toArray(new String[children.size()]));
 		}
 		return sUtil.updateLists(sqls);
+	}
+	
+	public String removeProject(String username,String parentId,String childrenId){
+		SUtil sUtil = new SUtil();
+		StringBuffer sb = new StringBuffer();
+		sb.append("update");
+		if(!"".equals(childrenId)){
+			sb.append(" PROJECT_CHILDREN");
+			sUtil.add(childrenId);
+		}else if(!"".equals(parentId)){
+			sb.append(" PROJECT_PARENT");
+			sUtil.add(parentId);
+		}
+		sb.append(" set ACTIVE_FLAG = 'N' where id = ?");
+		return sUtil.update(sb.toString());
 	}
 	
 }

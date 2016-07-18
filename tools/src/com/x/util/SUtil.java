@@ -99,6 +99,7 @@ public class SUtil{
 			rs = ps.executeQuery();
 			String[] columns = column.split(",");
 			StringBuffer resultB = null;
+			System.out.println("执行SQL := "+sql);
 			while(rs.next()){
 				resultB = new StringBuffer();
 				resultB.append("{");
@@ -144,6 +145,7 @@ public class SUtil{
 			for(int i=0;i<condition.size();i++)
 				ps.setString(i+1, condition.get(i));
 			rCount = ps.executeUpdate();
+			System.out.println("执行SQL := "+sql);
 			con.commit();
 			if(rCount == -1) json = JUtil.getJson("操作失败,请重试!", Const.fail, false);
 			else json = JUtil.getJson("更新成功,影响数据数: "+rCount, Const.success, true);
@@ -188,6 +190,7 @@ public class SUtil{
 					ps.clearBatch();
 				}
 			}
+			System.out.println("执行SQL := "+sql);
 			con.commit();
 			json = JUtil.getJson("批量更新完成!影响数据数："+resultCount, Const.success, true);
 		} catch (Exception e) {
@@ -232,6 +235,7 @@ public class SUtil{
 							ps.clearBatch();
 						}
 					}
+					System.out.println("执行SQL := "+sqls[i]);
 				}
 				con.commit();
 			}

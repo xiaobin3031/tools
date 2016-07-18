@@ -40,7 +40,7 @@ public class Main extends HttpServlet{
 			throws ServletException, IOException {
 		res.setCharacterEncoding("UTF-8");
 		res.setContentType("text/html;charset=UTF-8");
-		res.addHeader("Access-Control-Allow-Origin", "*");
+//		res.addHeader("Access-Control-Allow-Origin", "*");
 		
 		HttpSession session = req.getSession();
 		Object username = session.getAttribute("username");
@@ -84,8 +84,7 @@ public class Main extends HttpServlet{
 					if("getProject".equals(subAction)){
 						String isShare = Util.ifObjNull(req.getParameter("isShare"), "false").toString();
 						json = p.getProject(username.toString(),Boolean.parseBoolean(isShare));
-					}
-					else if("saveProject".equals(subAction)){
+					}else if("saveProject".equals(subAction)){
 						String sProjectName = req.getParameter("projectName");
 						String sProjectId = req.getParameter("projectId");
 						String[] aChildrens = req.getParameterValues("childrens[]");
@@ -97,6 +96,10 @@ public class Main extends HttpServlet{
 						String[] childrens = req.getParameterValues("childrens[]");
 						String[] friends = req.getParameterValues("friends[]");
 						json = p.shareProject(username.toString() , parents, childrens,friends);
+					}else if("removeProject".equals(subAction)){
+						String parentId = req.getParameter("parentId");
+						String childrenId = req.getParameter("childrenId");
+						json = p.removeProject(username.toString(),parentId,childrenId);
 					}
 				}else if("questions".equals(action)){
 					Question q = new Question();
@@ -127,6 +130,9 @@ public class Main extends HttpServlet{
 							if(!Util.isNotNull(childrenId)) childrenId = "0";
 							json = q.transfer(username.toString(), parentId, childrenId, questionids);
 						}
+					}else if("fileGrid".equals(subAction)){
+						String id = req.getParameter("id");
+						json = q.getFileGrid(username.toString(), id);
 					}
 				}else if("solution".equals(action)){
 					Solution a = new Solution();

@@ -380,7 +380,7 @@ rhtmlC:function(v){
 },
 toUrl:function(v){
 	if(X.isEmpty(v)) return '';
-	var regexp = new RegExp('https?:\/\/[a-zA-Z0-9]+\.[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)?(:[0-9]{1,5})?(/[a-zA-Z0-9?=]+)?','g');
+	var regexp = new RegExp('https?://[a-zA-Z0-9]+\.[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)?(\.[a-zA-Z0-9]+)?(:[0-9]{1,5})?(/[#.@a-zA-Z0-9?=-]*)*','g');
 	var av = v.match(regexp);
 	if(av == null) return v;
 	for(var i=0;i<av.length;i++){

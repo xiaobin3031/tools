@@ -133,7 +133,20 @@ public class Question {
 		SUtil sUtil = new SUtil();
 		StringBuffer sb = new StringBuffer();
 		sb.append("insert into QUESTIONUPLOAD(QUESTIONID,PATH,FILENAME,ADDWHO,ADDTIME) values(?,?,?,?,?)");
+		path = path.substring(path.indexOf("tools")+"tools".length()).replace("\\", "/");
 		sUtil.add(questionid,path,filename,username,Util.date2String());
 		return sUtil.update(sb.toString());
+	}
+	
+	public String getFileGrid(String username,String id){
+		SUtil sUtil = new SUtil(false);
+		StringBuffer sb = new StringBuffer();
+		sb.append("select path,filename,date_format(addtime,'%Y-%c-%d %h:%i:%s') as addtime,path+'/'+filename as download")
+		.append(" from QUESTIONUPLOAD")
+		.append(" where QUESTIONID = ? and ADDWHO = ?")
+		.append(" order by id desc");
+		sUtil.setColumns("path,filename,addtime,download");
+		sUtil.add(id,username);
+		return JUtil.getDatagrid(sUtil.getTotalCount(), sUtil.fetch(sb.toString(), 0).toString());
 	}
 }

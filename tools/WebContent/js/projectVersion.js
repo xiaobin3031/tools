@@ -45,8 +45,8 @@ $(function(){
 			saveData();
 	});
 	
-	getProject('projectNames');
-	getProject('projectShare',true);
+	getProject();
+//	getProject('projectShare',true);
 	$('#usertext').text(X.cookie.get('username'));
 });
 function saveTheme(){
@@ -69,17 +69,12 @@ function collapsePanel(){
 }
 // initEnd;
 
-function tabAdd(){
-	var data = {};
-	data.action = "1111";
-	X.ajax(data);
-}
-
 /**
  * project模块
  */
 function getProject(id,isShare){
 	//查询数据库
+	if(X.isEmpty(id)) id = 'projectNames';
 	if(!isShare) isShare = false;
 	var oData = {};
 	oData.action = 'project';
@@ -106,7 +101,7 @@ function addProject(){
 	//为添加窗口初始化输入框
 	var selectedProject = getTreeParentChildren();
 	//如果选中的子节点
-	if(!X.isEmpty(selectedProject.parentId) && !X.isEmpty(selectedProject.childrenId)){
+	if(selectedProject != null && !X.isEmpty(selectedProject.parentId) && !X.isEmpty(selectedProject.childrenId)){
 		$('#projectLevel').combobox('select','s');
 		$('#projectName').textbox('disable');
 		$('#projectId').textbox('setValue',selectedProject.parentId);
@@ -114,25 +109,6 @@ function addProject(){
 		$('#projectNameSelect').combobox('select',selectedProject.parentId);
 	}else
 		$('#projectLevel').combobox('select','p');
-	
-	
-	/*if(selectedProject != null){
-		if($('#projectNames').tree('isLeaf',selectedProject.target)){
-			//Children
-			$('#projectLevel').combobox('select','s');
-			var parent = $('#projectNames').tree('getParent',selectedProject.target);
-			if(parent){
-				$('#projectId').textbox('setValue',parent.id);
-				$('#projectName').textbox('setValue',parent.text);
-			}else{
-				$('#projectId').textbox('setValue',selectedProject.id);
-				$('#projectName').textbox('setValue',selectedProject.text);
-			}
-			$('#projectName').textbox('disable');
-		}else
-			//Parent
-			$('#projectLevel').combobox('select','p');
-	}*/
 }
 function saveProject(){
 	var oData = {};
@@ -159,6 +135,24 @@ function saveProject(){
 			cancelProject();
 		}else
 			X.dialog(json.resultMsg);
+	});
+}
+function removeProject(){
+	var p = getTreeParentChildren();
+	var oData = {};
+	oData.action = 'project';
+	oData.subAction = 'removeProject';
+	oData.parentId = p.parentId;
+	oData.childrenId = p.childrenId;
+	X.ajax(oData,function(data){
+		var json = X.toJson(data);
+		X.dialog(json.resultMsg,json.code);
+		if(json.success){
+			//调用remove方法会导致样式变形，相当于重新刷新了该节点，而且如果删除的子节点是最后一个的时候，原本的父节点会变成子节点的样式
+			if(p.childrenId != '') getProject();
+			else if(p.parentId != '') $('#projectNames').tree('remove',p.target);
+			$('#questions').datagrid('loadData',[]);
+		}
 	});
 }
 function cancelProject(){
@@ -483,7 +477,8 @@ function cancelShareQues(){
 	$('#projectNames .tree-checkbox.tree-checkbox2').detach();
 }
 function editQuesNote(){
-	if($('#questions').datagrid('getSelected') != null && $('#ques_input').length <= 0){
+	if($('#questions').datagrid('getSelected') != null && $('#ques_input').length <= 0 
+			&& $('#questions').datagrid('getSelected').status.substring(0,3) == '已创建'){
 		$('#quesNotePanel').empty();
 		$('#quesNotePanel').append('<input id="ques_input">');
 		var options = {};
@@ -496,7 +491,8 @@ function editQuesNote(){
 	}
 }
 function saveQuesNote(){
-	if($('#questions').datagrid('getSelected') != null && $('#ques_input').length > 0){
+	if($('#questions').datagrid('getSelected') != null && $('#ques_input').length > 0
+			&& $('#questions').datagrid('getSelected').status.substring(0,3) == '已创建'){
 		var oData = {};
 		oData.action = 'questions';
 		oData.subAction = 'saveQuesNotes';
@@ -513,7 +509,8 @@ function saveQuesNote(){
 	}
 }
 function cancelQuesNote(){
-	if($('#questions').datagrid('getSelected') != null && $('#ques_input').length > 0){
+	if($('#questions').datagrid('getSelected') != null && $('#ques_input').length > 0
+			&& $('#questions').datagrid('getSelected').status.substring(0,3) == '已创建'){
 		$('#quesNotePanel').empty();
 		$('#quesNotePanel').panel({content:$('#questions').datagrid('getSelected').notes});
 	}
@@ -617,7 +614,7 @@ function onSelectRow(index,data){
 	getSolution(data.id);
 }
 function questionDblRow(rowIndex,rowData){
-	if(isAdd || rowData.status.substring(0,3) == '已解决') return;
+	if(isAdd || rowData.status.substring(0,3) != '已创建') return;
 	isEdit = true;
 	$('#questions').datagrid('beginEdit',rowIndex);
 	if(edit_index != undefined) $('#questions').datagrid('endEdit',edit_index);
@@ -635,8 +632,8 @@ function getTreeParentChildren(id){
 	if(id == undefined) id = 'projectNames';
 	if(!$('#'+id).tree('getSelected')) return null;
 	var selected = $('#'+id).tree('getSelected');
-	$('#'+id).tree('expand',selected.target);
 	var oData = {};
+	oData.target = selected.target;
 	if($('#'+id).tree('isLeaf',selected.target)){
 		var parent = $('#'+id).tree('getParent',selected.target);
 		if(parent){
@@ -768,7 +765,7 @@ function saveSolution(){
 	oData.subAction = 'saveSolution';
 	oData.solution = solution;
 	oData.keyword = keyword;
-	oData.questionId = rowSelectedData.id;
+	oData.questionId = rowSelectedData.id; 
 	oData.status = status;
 	X.ajax(oData, function(data){
 		var json = X.toJson(data);
@@ -788,3 +785,30 @@ function cancelSolution(){
 	solutionId = 0;
 }
 //solutionEnd;
+
+function selectFileTab(title,index){
+	var select = $('#questions').datagrid('getSelected');
+	if(select == null) return;
+	if(title == '下载' && select.filecount != undefined && parseInt(select.filecount) > 0){
+		//getFileDataGrid
+		getFileGrid(select.id);
+	}
+}
+/**
+ * 获取fileGrid的数据
+ */
+function getFileGrid(id){
+	var oData = {};
+	oData.action = 'questions';
+	oData.subAction = 'fileGrid';
+	oData.id = id;
+	X.ajax(oData,function(data){
+		var json = X.toJson(data);
+		X.dialog(json.resultMsg,json.code);
+		if(json.success)
+			$('#fileDown').datagrid('loadData',json.rows);
+	});
+}
+function formatDownload(value,row,index){
+	return '<a href="'+row.path + '/' + row.filename +'" target="_blank" style="text-align:center;"><img src="icon/download.png"</a>';
+}
