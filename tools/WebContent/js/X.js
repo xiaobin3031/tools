@@ -38,7 +38,7 @@ $(function(){
 	}
 });
 var X={
-cons:{url:'action.php',upload:'upload.php',pageSize:50,alertCode:-200,notLogin:-101},
+cons:{url:'action.php',upload:'upload.php',pageSize:50,alertCode:-200,notLogin:-101,path:'http://127.0.0.1:8081/tools'},
 que_sts:{'已创建':'00','已解决':'50'},
 init:function(){
     X.ajax({action:"userOrAdmin"},function(data){

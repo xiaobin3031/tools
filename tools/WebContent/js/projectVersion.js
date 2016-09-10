@@ -810,5 +810,14 @@ function getFileGrid(id){
 	});
 }
 function formatDownload(value,row,index){
-	return '<a href="'+row.path + '/' + row.filename +'" target="_blank" style="text-align:center;"><img src="icon/download.png"</a>';
+	return '<a href="'+X.cons.path+row.path + '/' + row.filename +'" target="_blank" style="text-align:center;"><img src="icon/download.png"</a>';
+}
+function getDaliy(){
+	var date = new Date();
+	var y = date.getFullYear();
+	var m = date.getMonth() + 1;
+	var d = date.getDate();
+	if(m < 10) m = '0' + m;
+	if(d < 10) d = '0' + d;
+	$('#subCodeName').textbox('setValue',y+'-'+m+'-'+d);
 }
